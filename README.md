@@ -53,9 +53,11 @@ under certain conditions.
 
 Examples:
 
-Formatting with called out coins:
+Formatting with called out coins (make terminal text small to read table):
 
  ~ $ coin_market -c bitcoin bitcoin-cash bitcoin-gold ethereum litecoin dash eos monero dogecoin -f
+
+
 +--------------+--------------+--------+------+------------+------------+----------------+----------------+------------------+--------------+-------------+-------------------+--------------------+-------------------+--------------+
 |      id      |     name     | symbol | rank | price_usd  | price_btc  | 24h_volume_usd | market_cap_usd | available_supply | total_supply | max_supply  | percent_change_1h | percent_change_24h | percent_change_7d | last_updated |
 +--------------+--------------+--------+------+------------+------------+----------------+----------------+------------------+--------------+-------------+-------------------+--------------------+-------------------+--------------+
@@ -72,9 +74,10 @@ Formatting with called out coins:
 
 
 
-Without formatting:
+Without formatting, leaving the JSON output for end user use.:
 
  ~ $ coin_market -c bitcoin bitcoin-cash bitcoin-gold ethereum litecoin dash eos monero dogecoin
+
 {u'market_cap_usd': u'138080960316', u'price_usd': u'8268.42', u'last_updated': u'1511586850', u'name': u'Bitcoin', u'24h_volume_usd': u'4818860000.0', u'percent_change_7d': u'7.72', u'symbol': u'BTC', u'max_supply': u'21000000.0', u'rank': u'1', u'percent_change_1h': u'0.42', u'total_supply': u'16699800.0', u'price_btc': u'1.0', u'available_supply': u'16699800.0', u'percent_change_24h': u'2.26', u'id': u'bitcoin'}
 {u'market_cap_usd': u'26881588570.0', u'price_usd': u'1598.11', u'last_updated': u'1511586867', u'name': u'Bitcoin Cash', u'24h_volume_usd': u'2492640000.0', u'percent_change_7d': u'25.71', u'symbol': u'BCH', u'max_supply': u'21000000.0', u'rank': u'3', u'percent_change_1h': u'0.1', u'total_supply': u'16820863.0', u'price_btc': u'0.19367', u'available_supply': u'16820863.0', u'percent_change_24h': u'-4.77', u'id': u'bitcoin-cash'}
 {u'market_cap_usd': None, u'price_usd': u'384.931', u'last_updated': u'1511586874', u'name': u'Bitcoin Gold', u'24h_volume_usd': u'506422000.0', u'percent_change_7d': u'136.16', u'symbol': u'BTG', u'max_supply': u'21000000.0', u'rank': u'1028', u'percent_change_1h': u'0.64', u'total_supply': u'16765449.0', u'price_btc': u'0.0466487', u'available_supply': None, u'percent_change_24h': u'13.81', u'id': u'bitcoin-gold'}
