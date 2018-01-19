@@ -29,7 +29,7 @@ class APICall(object):
 
     def __init__(self, url, coins=None):
         self.url = url
-        self.coins = coins or None
+        self.coins = coins[0] or None
         self.response = urllib.urlopen(self.url)
         self.data = json.loads(self.response.read())
 
@@ -37,21 +37,31 @@ class APICall(object):
         """Make the API call and return all coin dictionaries."""
         return self.data
 
+    def coins_with_value(self):
+        """Filter coins with values into a dictionary."""
+        coins_with_value = []
+        for coin in self.coins:
+            if len(coin) > 1:
+                temp_dict = {}
+                temp_dict[coin[0]] = float(coin[1])
+                coins_with_value.append(temp_dict)
+        return coins_with_value
+
     def call_specified_coins(self):
         """Returns specified coin dictionaries requested by user."""
         dictionary_list = []
         for coin in self.coins:
             for dictionary in self.data:
-                if dictionary['id'] == coin.lower():
+                if dictionary['id'] == coin[0]:
                     dictionary_list.append(dictionary)
         return dictionary_list
 
 
-def decorate_coins(dictionaries):
-    """Format dictionaries into ASCII tables."""
+def decorate_coins(pull_coin_dictionary):
+    """Format pull_coin_dictionary into ASCII tables."""
     headers = prettytable.PrettyTable(['id', 'name', 'symbol', 'rank', 'price_usd', 'price_btc', '24h_volume_usd', 'market_cap_usd',
                                        'available_supply', 'total_supply', 'max_supply ', 'percent_change_1h', 'percent_change_24h', 'percent_change_7d', 'last_updated'])
-    for dictionary in dictionaries:
+    for dictionary in pull_coin_dictionary:
         headers.add_row([dictionary['id'],
                          dictionary['name'],
                          dictionary['symbol'],
@@ -69,6 +79,14 @@ def decorate_coins(dictionaries):
                          dictionary['last_updated']])
     print headers
 
+def decorate_users_portfolio(coin_with_values, pull_coin_dictionary):
+    """Import user coin portfolio and format to a table."""
+    if not coin_with_values:
+        return
+    print coin_with_values
+    for dictionaries in pull_coin_dictionary:
+        print dictionaries['price_usd']
+
 
 def parse_arguments():
     """Capture user arguments to compile main()."""
@@ -83,7 +101,7 @@ def parse_arguments():
     #                     help='Add the coins you want to pull dictionaries.')
     parser.add_argument('-f', '--format', action='store_true',
                         help='Format dictionaries into a table.')
-    parser.add_argument('-c', '--coin', action='append', type=lambda coin_value: coin_value.split('='), nargs='*', dest='keyvalues')
+    parser.add_argument('-c', '--coins', action='append', type=lambda coin_value: coin_value.lower().split('='), nargs='*', dest='coins', help='Provide coin names with/without the amount of coin in your wallet.')
     args = parser.parse_args()
     return args
 
@@ -96,17 +114,20 @@ def main():
     """
 
     args = parse_arguments()
-    print args
 
     url = 'https://api.coinmarketcap.com/v1/ticker/?limit=0'
 
-    # if args.coins:
-    #     request_coin_statistics = APICall(url, args.coins)
-    #     pull_coin_dictionary = request_coin_statistics.call_specified_coins()
-    #     if args.format:
-    #         decorate_coins(pull_coin_dictionary)
+    if args.coins:
+        request_coin_statistics = APICall(url, args.coins)
+        pull_coin_dictionary = request_coin_statistics.call_specified_coins()
+        coin_with_values = request_coin_statistics.coins_with_value()
+        if args.format:
+            decorate_coins(pull_coin_dictionary)
+            decorate_users_portfolio(coin_with_values, pull_coin_dictionary)
     #     else:
     #         for dictionary in pull_coin_dictionary:
+    #             print dictionary
+    #         for dictionary in coin_with_values:
     #             print dictionary
     #
     # if args.format and args.coins == None:
