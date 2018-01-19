@@ -79,10 +79,11 @@ def parse_arguments():
         url, api_address, legal_statement)
     parser = argparse.ArgumentParser(
         description=__doc__, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('-c', '--coins', nargs='*',
-                        help='Add the coins you want to pull dictionaries.')
+    # parser.add_argument('-c', '--coins', nargs='*',
+    #                     help='Add the coins you want to pull dictionaries.')
     parser.add_argument('-f', '--format', action='store_true',
                         help='Format dictionaries into a table.')
+    parser.add_argument('-c', '--coin', action='append', type=lambda coin_value: coin_value.split('='), nargs='*', dest='keyvalues')
     args = parser.parse_args()
     return args
 
@@ -95,28 +96,29 @@ def main():
     """
 
     args = parse_arguments()
+    print args
 
     url = 'https://api.coinmarketcap.com/v1/ticker/?limit=0'
 
-    if args.coins:
-        request_coin_statistics = APICall(url, args.coins)
-        pull_coin_dictionary = request_coin_statistics.call_specified_coins()
-        if args.format:
-            decorate_coins(pull_coin_dictionary)
-        else:
-            for dictionary in pull_coin_dictionary:
-                print dictionary
-
-    if args.format and args.coins == None:
-        request_coin_statistics = APICall(url)
-        raw_coins_list = request_coin_statistics.return_all_coins()
-        decorate_coins(raw_coins_list)
-
-    if args.coins == None and args.format == False:
-        request_coin_statistics = APICall(url)
-        raw_coins_list = request_coin_statistics.return_all_coins()
-        for dictionary in raw_coins_list:
-            print dictionary
+    # if args.coins:
+    #     request_coin_statistics = APICall(url, args.coins)
+    #     pull_coin_dictionary = request_coin_statistics.call_specified_coins()
+    #     if args.format:
+    #         decorate_coins(pull_coin_dictionary)
+    #     else:
+    #         for dictionary in pull_coin_dictionary:
+    #             print dictionary
+    #
+    # if args.format and args.coins == None:
+    #     request_coin_statistics = APICall(url)
+    #     raw_coins_list = request_coin_statistics.return_all_coins()
+    #     decorate_coins(raw_coins_list)
+    #
+    # if args.coins == None and args.format == False:
+    #     request_coin_statistics = APICall(url)
+    #     raw_coins_list = request_coin_statistics.return_all_coins()
+    #     for dictionary in raw_coins_list:
+    #         print dictionary
 
 
 if __name__ == '__main__':
