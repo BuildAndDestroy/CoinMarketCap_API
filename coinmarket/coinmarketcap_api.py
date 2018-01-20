@@ -47,15 +47,21 @@ class APICall(object):
                 coins_with_value.append(temp_dict)
         return coins_with_value
 
-    def call_specified_coins(self):
+    def call_specified_coins(self, unique_coins):
         """Returns specified coin dictionaries requested by user."""
         dictionary_list = []
-        for coin in self.coins:
+        for coin in unique_coins:
             for dictionary in self.data:
-                if dictionary['id'] == coin[0]:
+                if dictionary['id'] == coin:
                     dictionary_list.append(dictionary)
         return dictionary_list
 
+def unique_coin_list(args_coins):
+    unique_coin_list = []
+    for lists in args_coins[0]:
+        unique_coin_list.append(lists[0])
+    unique_coin_list = list(set(unique_coin_list))
+    return unique_coin_list
 
 def decorate_coins(pull_coin_dictionary):
     """Format pull_coin_dictionary into ASCII tables."""
@@ -84,8 +90,9 @@ def decorate_users_portfolio(coin_with_values, pull_coin_dictionary):
     if not coin_with_values:
         return
     print coin_with_values
-    for dictionaries in pull_coin_dictionary:
-        print dictionaries['price_usd']
+    #print pull_coin_dictionary
+    # for dictionaries in pull_coin_dictionary:
+    #     print dictionaries['price_usd']
 
 
 def parse_arguments():
@@ -118,17 +125,18 @@ def main():
     url = 'https://api.coinmarketcap.com/v1/ticker/?limit=0'
 
     if args.coins:
+        unique_coins = unique_coin_list(args.coins)
         request_coin_statistics = APICall(url, args.coins)
-        pull_coin_dictionary = request_coin_statistics.call_specified_coins()
+        pull_coin_dictionary = request_coin_statistics.call_specified_coins(unique_coins)
         coin_with_values = request_coin_statistics.coins_with_value()
         if args.format:
             decorate_coins(pull_coin_dictionary)
             decorate_users_portfolio(coin_with_values, pull_coin_dictionary)
-    #     else:
-    #         for dictionary in pull_coin_dictionary:
-    #             print dictionary
-    #         for dictionary in coin_with_values:
-    #             print dictionary
+        else:
+            for dictionary in pull_coin_dictionary:
+                print dictionary
+            for dictionary in coin_with_values:
+                print dictionary
     #
     # if args.format and args.coins == None:
     #     request_coin_statistics = APICall(url)
