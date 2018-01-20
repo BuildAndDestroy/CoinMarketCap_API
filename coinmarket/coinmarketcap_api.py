@@ -89,11 +89,13 @@ def decorate_users_portfolio(coin_with_values, pull_coin_dictionary):
     """Import user coin portfolio and format to a table."""
     if not coin_with_values:
         return
-    print coin_with_values
-    #print pull_coin_dictionary
-    # for dictionaries in pull_coin_dictionary:
-    #     print dictionaries['price_usd']
-
+    table = prettytable.PrettyTable(['id', 'Coins in Wallet', 'Current Equity'])
+    for dictionaries, coins in zip(pull_coin_dictionary, coin_with_values):
+        for key, value in coins.iteritems():
+            #print key, value
+            if dictionaries['id'] == key:
+                table.add_row([key, value, float(dictionaries['price_usd']) * float(value)])
+    print '\n{}'.format(table)
 
 def parse_arguments():
     """Capture user arguments to compile main()."""
@@ -121,6 +123,7 @@ def main():
     """
 
     args = parse_arguments()
+    print args
 
     url = 'https://api.coinmarketcap.com/v1/ticker/?limit=0'
 
