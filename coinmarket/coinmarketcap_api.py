@@ -17,6 +17,7 @@
 
 import argparse
 import json
+import pkg_resources
 import urllib
 
 import prettytable
@@ -55,6 +56,19 @@ class APICall(object):
                 if dictionary['id'] == coin:
                     dictionary_list.append(dictionary)
         return dictionary_list
+
+
+def display_version():
+    """Display the version of CoinMarketCap_API installed."""
+    __version__ = pkg_resources.require('CoinMarketCap')[0].version
+    print __version__
+
+
+def display_license():
+    """Display the micro license and point to the full license."""
+    description = __doc__
+    legal_statement = '\ncoinmarketcap_api.py Copyright (C) 2017  Mitch O\'Donnell\n\nThis program comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it\nunder certain conditions.\n\nPlease read the full LICENSE file.\n'
+    print description, legal_statement
 
 
 def unique_coin_list(args_coins):
@@ -106,19 +120,21 @@ def decorate_users_portfolio(coin_with_values, pull_coin_dictionary):
 
 def parse_arguments():
     """Capture user arguments to compile main()."""
-    legal_statement = 'coinmarketcap_api.py Copyright (C) 2017  Mitch O\'Donnell\nThis program comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it\nunder certain conditions.'
     url = 'https://coinmarketcap.com/'
     api_address = 'https://api.coinmarketcap.com/v1/ticker/?limit=0'
-    epilog = '[*] Coin Exchange: {}\r\n[*] API Address: {}\r\n\r\n{}'.format(
-        url, api_address, legal_statement)
+    epilog = '[*] Coin Exchange: {}\r\n[*] API Address: {}\r\n'.format(
+        url, api_address)
     parser = argparse.ArgumentParser(
-        description=__doc__, epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
+        epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     # parser.add_argument('-c', '--coins', nargs='*',
     #                     help='Add the coins you want to pull dictionaries.')
     parser.add_argument('-f', '--format', action='store_true',
                         help='Format dictionaries into a table.')
     parser.add_argument('-c', '--coins', action='append', type=lambda coin_value: coin_value.lower().split('='), nargs='*', dest='coins',
                         help='Provide coin names with/without the amount of coin in your wallet.\nExample: \n-c Bitcoin=10 eos ethereum=5\n-c bitcoin')
+    parser.add_argument('-L', '--License', action='store_true', help='Print out the micro license for this software.\nSee LICENSE file for full license.')
+    parser.add_argument('-V', '--Version', action='store_true', help='Print out the current version of coin_market installed.')
+    parser.add_argument('-o', '--output', help='Send output to a file in .csv format.')
     args = parser.parse_args()
     return args
 
@@ -131,6 +147,7 @@ def main():
     """
 
     args = parse_arguments()
+    print args
 
     url = 'https://api.coinmarketcap.com/v1/ticker/?limit=0'
 
@@ -149,16 +166,22 @@ def main():
             for dictionary in coin_with_values:
                 print dictionary
 
+    if args.License:
+        display_license()
+
+    if args.Version:
+        display_version()
+
     if args.format and args.coins is None:
         request_coin_statistics = APICall(url)
         raw_coins_list = request_coin_statistics.return_all_coins()
         decorate_coins(raw_coins_list)
 
-    if args.coins is None and args.format is False:
-        request_coin_statistics = APICall(url)
-        raw_coins_list = request_coin_statistics.return_all_coins()
-        for dictionary in raw_coins_list:
-            print dictionary
+    # if args.coins is None and args.format is False:
+    #     request_coin_statistics = APICall(url)
+    #     raw_coins_list = request_coin_statistics.return_all_coins()
+    #     for dictionary in raw_coins_list:
+    #         print dictionary
 
 
 if __name__ == '__main__':
