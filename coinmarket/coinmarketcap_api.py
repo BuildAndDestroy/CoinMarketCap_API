@@ -147,9 +147,15 @@ def main():
     """
 
     args = parse_arguments()
-    print args
+    # print args
 
     url = 'https://api.coinmarketcap.com/v1/ticker/?limit=0'
+
+    if args.License:
+        display_license()
+
+    if args.Version:
+        display_version()
 
     if args.coins:
         unique_coins = unique_coin_list(args.coins)
@@ -157,6 +163,7 @@ def main():
         pull_coin_dictionary = request_coin_statistics.call_specified_coins(
             unique_coins)
         coin_with_values = request_coin_statistics.coins_with_value()
+        print coin_with_values
         if args.format:
             decorate_coins(pull_coin_dictionary)
             decorate_users_portfolio(coin_with_values, pull_coin_dictionary)
@@ -165,12 +172,6 @@ def main():
                 print dictionary
             for dictionary in coin_with_values:
                 print dictionary
-
-    if args.License:
-        display_license()
-
-    if args.Version:
-        display_version()
 
     if args.format and args.coins is None:
         request_coin_statistics = APICall(url)
