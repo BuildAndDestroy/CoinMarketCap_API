@@ -16,9 +16,11 @@
 """
 
 import argparse
+import csv
 import json
-import pkg_resources
 import urllib
+
+import pkg_resources
 
 import prettytable
 
@@ -80,6 +82,23 @@ def unique_coin_list(args_coins):
     return unique_coin
 
 
+def write_csv_file(coin_with_values, pull_coin_dictionary):
+    """Create a csv file with portfolio data."""
+    with open('portfolio.csv', 'w') as csv_file:
+        fieldnames = ['Coin', 'Coins in Portfolio', 'USD Amount']
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(fieldnames)
+        # for dictionary in coin_with_values:
+        #     for key, value in dictionary.iteritems():
+        #         csv_writer.writerow([key, value])
+        for dictionaries in pull_coin_dictionary:
+            for coins in coin_with_values:
+                for key, value in coins.iteritems():
+                    if dictionaries['id'] == key:
+                        csv_writer.writerow(
+                            [key, value, float(dictionaries['price_usd']) * float(value)])
+
+
 def decorate_coins(pull_coin_dictionary):
     """Format pull_coin_dictionary into ASCII tables."""
     headers = prettytable.PrettyTable(['id', 'name', 'symbol', 'rank', 'price_usd', 'price_btc', '24h_volume_usd', 'market_cap_usd',
@@ -126,15 +145,16 @@ def parse_arguments():
         url, api_address)
     parser = argparse.ArgumentParser(
         epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
-    # parser.add_argument('-c', '--coins', nargs='*',
-    #                     help='Add the coins you want to pull dictionaries.')
     parser.add_argument('-f', '--format', action='store_true',
                         help='Format dictionaries into a table.')
     parser.add_argument('-c', '--coins', action='append', type=lambda coin_value: coin_value.lower().split('='), nargs='*', dest='coins',
                         help='Provide coin names with/without the amount of coin in your wallet.\nExample: \n-c Bitcoin=10 eos ethereum=5\n-c bitcoin')
-    parser.add_argument('-L', '--License', action='store_true', help='Print out the micro license for this software.\nSee LICENSE file for full license.')
-    parser.add_argument('-V', '--Version', action='store_true', help='Print out the current version of coin_market installed.')
-    parser.add_argument('-o', '--output', help='Send output to a file in .csv format.')
+    parser.add_argument('-o', '--output', action='store_true',
+                        help='Send portfolio to a file in .csv format.\nMust use with --coins.')
+    parser.add_argument('-L', '--License', action='store_true',
+                        help='Print out the micro license for this software.\nSee LICENSE file for full license.')
+    parser.add_argument('-V', '--Version', action='store_true',
+                        help='Print out the current version of coin_market installed.')
     args = parser.parse_args()
     return args
 
@@ -163,7 +183,6 @@ def main():
         pull_coin_dictionary = request_coin_statistics.call_specified_coins(
             unique_coins)
         coin_with_values = request_coin_statistics.coins_with_value()
-        print coin_with_values
         if args.format:
             decorate_coins(pull_coin_dictionary)
             decorate_users_portfolio(coin_with_values, pull_coin_dictionary)
@@ -172,17 +191,22 @@ def main():
                 print dictionary
             for dictionary in coin_with_values:
                 print dictionary
+        if args.output:
+            write_csv_file(coin_with_values, pull_coin_dictionary)
+
+    if args.output and args.coins is None:
+        print 'Must use with --coins.'
 
     if args.format and args.coins is None:
         request_coin_statistics = APICall(url)
         raw_coins_list = request_coin_statistics.return_all_coins()
         decorate_coins(raw_coins_list)
 
-    # if args.coins is None and args.format is False:
-    #     request_coin_statistics = APICall(url)
-    #     raw_coins_list = request_coin_statistics.return_all_coins()
-    #     for dictionary in raw_coins_list:
-    #         print dictionary
+    if args.coins is None and args.format is False and args.Version is False and args.License is False and args.output is False:
+        request_coin_statistics = APICall(url)
+        raw_coins_list = request_coin_statistics.return_all_coins()
+        for dictionary in raw_coins_list:
+            print dictionary
 
 
 if __name__ == '__main__':
