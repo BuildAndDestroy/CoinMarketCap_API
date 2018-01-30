@@ -82,21 +82,25 @@ def unique_coin_list(args_coins):
     return unique_coin
 
 
-def write_csv_file(coin_with_values, pull_coin_dictionary):
+def coin_portfolio_value(coin_with_values, pull_coin_dictionary):
+    coin_portfolio_value_list = []
+    for dictionaries in pull_coin_dictionary:
+        for coins in coin_with_values:
+            for key, value in coins.iteritems():
+                if dictionaries['id'] == key:
+                    coin_portfolio_value_list.append(
+                        [key, value, '{0:.3f}'.format(float(dictionaries['price_usd']) * float(value))])
+    return coin_portfolio_value_list
+
+
+def write_csv_file(coin_portfolio_value_list):
     """Create a csv file with portfolio data."""
     with open('portfolio.csv', 'w') as csv_file:
         fieldnames = ['Coin', 'Coins in Portfolio', 'USD Amount']
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(fieldnames)
-        # for dictionary in coin_with_values:
-        #     for key, value in dictionary.iteritems():
-        #         csv_writer.writerow([key, value])
-        for dictionaries in pull_coin_dictionary:
-            for coins in coin_with_values:
-                for key, value in coins.iteritems():
-                    if dictionaries['id'] == key:
-                        csv_writer.writerow(
-                            [key, value, '{0:.3f}'.format(float(dictionaries['price_usd']) * float(value))])
+        for lists in coin_portfolio_value_list:
+            csv_writer.writerow(lists)
 
 
 def decorate_coins(pull_coin_dictionary):
@@ -122,18 +126,14 @@ def decorate_coins(pull_coin_dictionary):
     print headers
 
 
-def decorate_users_portfolio(coin_with_values, pull_coin_dictionary):
+def decorate_users_portfolio(coin_portfolio_value_list):
     """Import user coin portfolio and format to a table."""
-    if not coin_with_values:
+    if not coin_portfolio_value_list:
         return
     table = prettytable.PrettyTable(
         ['id', 'Coins in Wallet', 'Current Equity'])
-    for dictionaries in pull_coin_dictionary:
-        for coins in coin_with_values:
-            for key, value in coins.iteritems():
-                if dictionaries['id'] == key:
-                    table.add_row(
-                        [key, value, '{0:.3f}'.format(float(dictionaries['price_usd']) * float(value))])
+    for lists in coin_portfolio_value_list:
+        table.add_row(lists)
     print '\n{}'.format(table)
 
 
@@ -183,16 +183,18 @@ def main():
         pull_coin_dictionary = request_coin_statistics.call_specified_coins(
             unique_coins)
         coin_with_values = request_coin_statistics.coins_with_value()
+        coin_portfolio_value_list = coin_portfolio_value(coin_with_values, pull_coin_dictionary)
+        print coin_portfolio_value_list
         if args.format:
             decorate_coins(pull_coin_dictionary)
-            decorate_users_portfolio(coin_with_values, pull_coin_dictionary)
+            decorate_users_portfolio(coin_portfolio_value_list)
         else:
             for dictionary in pull_coin_dictionary:
                 print dictionary
             for dictionary in coin_with_values:
                 print dictionary
         if args.output:
-            write_csv_file(coin_with_values, pull_coin_dictionary)
+            write_csv_file(coin_portfolio_value_list)
 
     if args.output and args.coins is None:
         print 'Must use with --coins.'
