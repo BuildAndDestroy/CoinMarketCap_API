@@ -96,7 +96,7 @@ def write_csv_file(coin_with_values, pull_coin_dictionary):
                 for key, value in coins.iteritems():
                     if dictionaries['id'] == key:
                         csv_writer.writerow(
-                            [key, value, float(dictionaries['price_usd']) * float(value)])
+                            [key, value, '{0:.3f}'.format(float(dictionaries['price_usd']) * float(value))])
 
 
 def decorate_coins(pull_coin_dictionary):
@@ -133,7 +133,7 @@ def decorate_users_portfolio(coin_with_values, pull_coin_dictionary):
             for key, value in coins.iteritems():
                 if dictionaries['id'] == key:
                     table.add_row(
-                        [key, value, float(dictionaries['price_usd']) * float(value)])
+                        [key, value, '{0:.3f}'.format(float(dictionaries['price_usd']) * float(value))])
     print '\n{}'.format(table)
 
 
