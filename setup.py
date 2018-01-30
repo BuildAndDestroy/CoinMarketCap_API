@@ -8,7 +8,7 @@
 
 from setuptools import setup
 
-__version__ = '2.3_3space.decimal'
+__version__ = '2.3.4_totals'
 packages = ['coinmarket']
 commands = ['coin_market = coinmarket.coinmarketcap_api:main']
 
