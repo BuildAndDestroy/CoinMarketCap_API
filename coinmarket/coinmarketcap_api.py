@@ -83,6 +83,10 @@ def unique_coin_list(args_coins):
 
 
 def coin_portfolio_value(coin_with_values, pull_coin_dictionary):
+    """
+        Build lists of coin, your portfolio amount of coin, and USD amount.
+        Return a list of lists.
+    """
     coin_portfolio_value_list = []
     for dictionaries in pull_coin_dictionary:
         for coins in coin_with_values:
@@ -93,7 +97,17 @@ def coin_portfolio_value(coin_with_values, pull_coin_dictionary):
     return coin_portfolio_value_list
 
 
-def write_csv_file(coin_portfolio_value_list):
+def total_usd_amount(coin_portfolio_value_list):
+    """Extract USD amount for each coin in portfolio, then add them together."""
+    usd_amount_list = []
+    for lists in coin_portfolio_value_list:
+        usd_amount_list.append(float(lists[2]))
+    total_usd_amount = reduce(
+        lambda first_position, next_position: first_position + next_position, usd_amount_list)
+    return '{0:.3f}'.format(float(total_usd_amount))
+
+
+def write_csv_file(coin_portfolio_value_list, total_portfolio_usd):
     """Create a csv file with portfolio data."""
     with open('portfolio.csv', 'w') as csv_file:
         fieldnames = ['Coin', 'Coins in Portfolio', 'USD Amount']
@@ -101,6 +115,8 @@ def write_csv_file(coin_portfolio_value_list):
         csv_writer.writerow(fieldnames)
         for lists in coin_portfolio_value_list:
             csv_writer.writerow(lists)
+        csv_writer.writerow(['Portfolio USD Amount'])
+        csv_writer.writerow([total_portfolio_usd])
 
 
 def decorate_coins(pull_coin_dictionary):
@@ -134,6 +150,13 @@ def decorate_users_portfolio(coin_portfolio_value_list):
         ['id', 'Coins in Wallet', 'Current Equity'])
     for lists in coin_portfolio_value_list:
         table.add_row(lists)
+    print '\n{}'.format(table)
+
+
+def decorate_portfolio_usd(total_portfolio_usd):
+    """Decorate the USD portfolio amount."""
+    table = prettytable.PrettyTable(['Portfolio USD Amount'])
+    table.add_row([total_portfolio_usd])
     print '\n{}'.format(table)
 
 
@@ -183,18 +206,21 @@ def main():
         pull_coin_dictionary = request_coin_statistics.call_specified_coins(
             unique_coins)
         coin_with_values = request_coin_statistics.coins_with_value()
-        coin_portfolio_value_list = coin_portfolio_value(coin_with_values, pull_coin_dictionary)
-        print coin_portfolio_value_list
+        coin_portfolio_value_list = coin_portfolio_value(
+            coin_with_values, pull_coin_dictionary)
+        total_portfolio_usd = total_usd_amount(coin_portfolio_value_list)
         if args.format:
             decorate_coins(pull_coin_dictionary)
             decorate_users_portfolio(coin_portfolio_value_list)
+            decorate_portfolio_usd(total_portfolio_usd)
         else:
             for dictionary in pull_coin_dictionary:
                 print dictionary
             for dictionary in coin_with_values:
                 print dictionary
+            print total_portfolio_usd
         if args.output:
-            write_csv_file(coin_portfolio_value_list)
+            write_csv_file(coin_portfolio_value_list, total_portfolio_usd)
 
     if args.output and args.coins is None:
         print 'Must use with --coins.'
