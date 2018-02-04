@@ -17,6 +17,7 @@
 
 import argparse
 import csv
+import glob
 import json
 import urllib
 
@@ -102,25 +103,38 @@ def total_usd_amount(coin_portfolio_value_list):
     usd_amount_list = []
     for lists in coin_portfolio_value_list:
         usd_amount_list.append(float(lists[2]))
-    total_usd_amount = reduce(
+    compile_usd_amount = reduce(
         lambda first_position, next_position: first_position + next_position, usd_amount_list)
-    return '{0:.3f}'.format(float(total_usd_amount))
+    return '{0:.3f}'.format(float(compile_usd_amount))
 
 
 def write_csv_file(coin_portfolio_value_list, total_portfolio_usd):
     """Create a csv file with portfolio data."""
     with open('portfolio.csv', 'w') as csv_file:
-        fieldnames = ['Coin', 'Coins in Portfolio', 'USD Amount']
+        fieldnames = ['id', 'Coins in Wallet', 'Current Equity']
         csv_writer = csv.writer(csv_file)
         csv_writer.writerow(fieldnames)
         for lists in coin_portfolio_value_list:
             csv_writer.writerow(lists)
-        csv_writer.writerow(['Portfolio USD Amount'])
+        csv_writer.writerow(['Total Equity USD Amount'])
         csv_writer.writerow([total_portfolio_usd])
 
 
+def read_csv_input():
+    """Read csv file and return list of rows from the csv file."""
+    portfolio_csv = glob.glob('portfolio.csv')
+    list_to_decorate = []
+    if not portfolio_csv:
+        return 'No portfolio.csv file was found!'
+    with open(portfolio_csv[0], 'rb') as csv_file:
+        reader = csv.reader(csv_file)
+        for row in reader:
+            list_to_decorate.append(row)
+    return list_to_decorate
+
+
 def decorate_coins(pull_coin_dictionary):
-    """Format pull_coin_dictionary into ASCII tables."""
+    """Format requested coins into a table."""
     headers = prettytable.PrettyTable(['id', 'name', 'symbol', 'rank', 'price_usd', 'price_btc', '24h_volume_usd', 'market_cap_usd',
                                        'available_supply', 'total_supply', 'max_supply ', 'percent_change_1h', 'percent_change_24h', 'percent_change_7d', 'last_updated'])
     for dictionary in pull_coin_dictionary:
@@ -155,9 +169,37 @@ def decorate_users_portfolio(coin_portfolio_value_list):
 
 def decorate_portfolio_usd(total_portfolio_usd):
     """Decorate the USD portfolio amount."""
-    table = prettytable.PrettyTable(['Portfolio USD Amount'])
+    table = prettytable.PrettyTable(['Total Equity USD Amount'])
     table.add_row([total_portfolio_usd])
     print '\n{}'.format(table)
+
+
+def decorate_imported_csv(read_portfolio_csv):
+    """Decorate the imported csv file and print to terminal."""
+    if read_portfolio_csv == 'No portfolio.csv file was found!':
+        print read_portfolio_csv
+        return
+
+    coins_in_portfolio = []
+    total_equity = []
+    for lists in read_portfolio_csv:
+        if len(lists) is 3:
+            coins_in_portfolio.append(lists)
+        else:
+            total_equity.append(lists)
+
+    portfolio_table = prettytable.PrettyTable(coins_in_portfolio[0])
+    del coins_in_portfolio[0]
+    for lists in coins_in_portfolio:
+        portfolio_table.add_row(lists)
+
+    equity_table = prettytable.PrettyTable(total_equity[0])
+    del total_equity[0]
+    for lists in total_equity:
+        equity_table.add_row(lists)
+
+    print '\n{}'.format(portfolio_table)
+    print '\n{}'.format(equity_table)
 
 
 def parse_arguments():
@@ -170,10 +212,12 @@ def parse_arguments():
         epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('-f', '--format', action='store_true',
                         help='Format dictionaries into a table.')
-    parser.add_argument('-c', '--coins', action='append', type=lambda coin_value: coin_value.lower().split('='), nargs='*', dest='coins',
+    parser.add_argument('-c', '--coins', action='append', type=lambda coin_and_portfolio_value: coin_and_portfolio_value.lower().split('='), nargs='*', dest='coins',
                         help='Provide coin names with/without the amount of coin in your wallet.\nExample: \n-c Bitcoin=10 eos ethereum=5\n-c bitcoin')
     parser.add_argument('-o', '--output', action='store_true',
                         help='Send portfolio to a file in .csv format.\nMust use with --coins.')
+    parser.add_argument('-i', '--input', action='store_true',
+                        help='Import a portfolio.csv file for formatting.')
     parser.add_argument('-L', '--License', action='store_true',
                         help='Print out the micro license for this software.\nSee LICENSE file for full license.')
     parser.add_argument('-V', '--Version', action='store_true',
@@ -222,19 +266,26 @@ def main():
         if args.output:
             write_csv_file(coin_portfolio_value_list, total_portfolio_usd)
 
-    if args.output and args.coins is None:
-        print 'Must use with --coins.'
-
-    if args.format and args.coins is None:
+    if args.format and args.coins is None and args.input is False:
         request_coin_statistics = APICall(url)
         raw_coins_list = request_coin_statistics.return_all_coins()
         decorate_coins(raw_coins_list)
 
-    if args.coins is None and args.format is False and args.Version is False and args.License is False and args.output is False:
+    if args.coins is None and args.format is False and args.Version is False and args.License is False and args.output is False and args.input is False:
         request_coin_statistics = APICall(url)
         raw_coins_list = request_coin_statistics.return_all_coins()
         for dictionary in raw_coins_list:
             print dictionary
+
+    if args.output and args.coins is None:
+        print 'Must use with --coins.'
+
+    if args.input:
+        read_portfolio_csv = read_csv_input()
+        if args.format:
+            decorate_imported_csv(read_portfolio_csv)
+        else:
+            print read_portfolio_csv
 
 
 if __name__ == '__main__':
