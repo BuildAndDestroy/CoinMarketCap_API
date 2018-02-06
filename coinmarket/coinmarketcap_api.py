@@ -100,6 +100,9 @@ def coin_portfolio_value(coin_with_values, pull_coin_dictionary):
 
 def total_usd_amount(coin_portfolio_value_list):
     """Extract USD amount for each coin in portfolio, then add them together."""
+    if not coin_portfolio_value_list:
+        return
+
     usd_amount_list = []
     for lists in coin_portfolio_value_list:
         usd_amount_list.append(float(lists[2]))
@@ -160,6 +163,7 @@ def decorate_users_portfolio(coin_portfolio_value_list):
     """Import user coin portfolio and format to a table."""
     if not coin_portfolio_value_list:
         return
+
     table = prettytable.PrettyTable(
         ['id', 'Coins in Wallet', 'Current Equity'])
     for lists in coin_portfolio_value_list:
@@ -169,6 +173,9 @@ def decorate_users_portfolio(coin_portfolio_value_list):
 
 def decorate_portfolio_usd(total_portfolio_usd):
     """Decorate the USD portfolio amount."""
+    if not total_portfolio_usd:
+        return
+
     table = prettytable.PrettyTable(['Total Equity USD Amount'])
     table.add_row([total_portfolio_usd])
     print '\n{}'.format(table)
@@ -210,10 +217,12 @@ def parse_arguments():
         url, api_address)
     parser = argparse.ArgumentParser(
         epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('-f', '--format', action='store_true',
-                        help='Format dictionaries into a table.')
     parser.add_argument('-c', '--coins', action='append', type=lambda coin_and_portfolio_value: coin_and_portfolio_value.lower().split('='), nargs='*', dest='coins',
                         help='Provide coin names with/without the amount of coin in your wallet.\nExample: \n-c Bitcoin=10 eos ethereum=5\n-c bitcoin')
+    parser.add_argument('-f', '--format', action='store_true',
+                        help='Format dictionaries into a table.')
+    parser.add_argument('-s', '--sort', action='store_true',
+                        help='Sort coins alphebetically or highest US dollar amount.')
     parser.add_argument('-o', '--output', action='store_true',
                         help='Send portfolio to a file in .csv format.\nMust use with --coins.')
     parser.add_argument('-i', '--input', action='store_true',
