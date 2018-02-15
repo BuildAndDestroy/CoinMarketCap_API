@@ -98,6 +98,12 @@ def coin_portfolio_value(coin_with_values, pull_coin_dictionary):
     return coin_portfolio_value_list
 
 
+def sort_dictionaries_alphabetically(pull_coin_dictionary):
+    """Import the requested coin dictionaries and sort by name alphabetically."""
+    sorted_dictionaries_by_name = sorted(pull_coin_dictionary, key=lambda x: x['name'])
+    return sorted_dictionaries_by_name
+
+
 def total_usd_amount(coin_portfolio_value_list):
     """Extract USD amount for each coin in portfolio, then add them together."""
     if not coin_portfolio_value_list:
@@ -258,29 +264,36 @@ def main():
         request_coin_statistics = APICall(url, args.coins)
         pull_coin_dictionary = request_coin_statistics.call_specified_coins(
             unique_coins)
+
+        if args.sort:
+            pull_coin_dictionary = sort_dictionaries_alphabetically(pull_coin_dictionary)
+
         coin_with_values = request_coin_statistics.coins_with_value()
         coin_portfolio_value_list = coin_portfolio_value(
             coin_with_values, pull_coin_dictionary)
         total_portfolio_usd = total_usd_amount(coin_portfolio_value_list)
-        if args.format:
-            decorate_coins(pull_coin_dictionary)
-            decorate_users_portfolio(coin_portfolio_value_list)
-            decorate_portfolio_usd(total_portfolio_usd)
-        else:
-            for dictionary in pull_coin_dictionary:
-                print dictionary
-            for dictionary in coin_with_values:
-                print dictionary
-            print total_portfolio_usd
-        if args.output:
-            write_csv_file(coin_portfolio_value_list, total_portfolio_usd)
+
+    if args.format and args.coins:
+        decorate_coins(pull_coin_dictionary)
+        decorate_users_portfolio(coin_portfolio_value_list)
+        decorate_portfolio_usd(total_portfolio_usd)
+
+    if args.coins is None and args.format is None:
+        for dictionary in pull_coin_dictionary:
+            print dictionary
+        for dictionary in coin_with_values:
+            print dictionary
+        print total_portfolio_usd
+
+    if args.output:
+        write_csv_file(coin_portfolio_value_list, total_portfolio_usd)
 
     if args.format and args.coins is None and args.input is False:
         request_coin_statistics = APICall(url)
         raw_coins_list = request_coin_statistics.return_all_coins()
         decorate_coins(raw_coins_list)
 
-    if args.coins is None and args.format is False and args.Version is False and args.License is False and args.output is False and args.input is False:
+    if args.coins is None and args.format is False and args.output is False and args.input is False and args.License is False and args.Version is False:
         request_coin_statistics = APICall(url)
         raw_coins_list = request_coin_statistics.return_all_coins()
         for dictionary in raw_coins_list:
