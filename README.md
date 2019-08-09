@@ -1,24 +1,29 @@
 
-Required modules, prettytable will be installed during pip install:
+## Dockerfile install
+```
+docker build -t coin_cap .
+docker run -it coin_cap coin_market -h
+```
+## Install into the OS 
 
-argparse
-json
-prettytable
-urllib
-
-
-Install this program into the OS (tested on Linux), clone or download zip. Change directory until setup.py is in the same directory, then run:
-
+```
 sudo pip install .
+```
 
-
-If upgrading, run:
-
+* If upgrading, run:
+```
 sudo pip install --upgrade .
+```
 
+## Install into a virtual environment
+```
+virtualenv coin_cap
+source coin_cap/bin/activate
+pip install /path/to/CoinMarketCap_API/.
+```
 
-Help Menu:
-
+###### Help Menu:
+```
 usage: coin_market.py [-h] [-c [COINS [COINS ...]]] [-f]
 
     API client to pull cryptocurrency data from live exchange rates.
@@ -47,14 +52,14 @@ coin_market.py Copyright (C) 2017  Mitch O'Donnell
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it
 under certain conditions.
+```
 
 
 
+###### Examples:
 
-Examples:
-
-Formatting with called out coins (make terminal text small to read table):
-
+* Formatting with called out coins (make terminal text small to read table):
+```
  ~ $ coin_market -c bitcoin bitcoin-cash bitcoin-gold ethereum litecoin dash eos monero dogecoin -f
 
 
@@ -71,11 +76,11 @@ Formatting with called out coins (make terminal text small to read table):
 |    monero    |    Monero    |  XMR   |  7   |  162.529   | 0.0196964  |   74228300.0   |  2502342237.0  |    15396282.0    |  15396282.0  |     None    |        0.72       |        1.97        |       29.41       |  1511586844  |
 |   dogecoin   |   Dogecoin   |  DOGE  |  35  | 0.00193866 | 0.00000023 |   9087690.0    |  217248776.0   |   112061308384   | 112061308384 |     None    |        0.81       |        1.62        |       49.14       |  1511586843  |
 +--------------+--------------+--------+------+------------+------------+----------------+----------------+------------------+--------------+-------------+-------------------+--------------------+-------------------+--------------+
+```
 
 
-
-Without formatting, leaving the JSON output for end user use.:
-
+* Without formatting, leaving the JSON output for end user use.:
+```
  ~ $ coin_market -c bitcoin bitcoin-cash bitcoin-gold ethereum litecoin dash eos monero dogecoin
 
 {u'market_cap_usd': u'138080960316', u'price_usd': u'8268.42', u'last_updated': u'1511586850', u'name': u'Bitcoin', u'24h_volume_usd': u'4818860000.0', u'percent_change_7d': u'7.72', u'symbol': u'BTC', u'max_supply': u'21000000.0', u'rank': u'1', u'percent_change_1h': u'0.42', u'total_supply': u'16699800.0', u'price_btc': u'1.0', u'available_supply': u'16699800.0', u'percent_change_24h': u'2.26', u'id': u'bitcoin'}
@@ -87,3 +92,4 @@ Without formatting, leaving the JSON output for end user use.:
 {u'market_cap_usd': u'908545916.0', u'price_usd': u'1.82312', u'last_updated': u'1511586866', u'name': u'EOS', u'24h_volume_usd': u'42032300.0', u'percent_change_7d': u'3.66', u'symbol': u'EOS', u'max_supply': None, u'rank': u'15', u'percent_change_1h': u'1.3', u'total_supply': u'1000000000.0', u'price_btc': u'0.00022094', u'available_supply': u'498346744.0', u'percent_change_24h': u'2.1', u'id': u'eos'}
 {u'market_cap_usd': u'2502342237.0', u'price_usd': u'162.529', u'last_updated': u'1511586844', u'name': u'Monero', u'24h_volume_usd': u'74228300.0', u'percent_change_7d': u'29.41', u'symbol': u'XMR', u'max_supply': None, u'rank': u'7', u'percent_change_1h': u'0.72', u'total_supply': u'15396282.0', u'price_btc': u'0.0196964', u'available_supply': u'15396282.0', u'percent_change_24h': u'1.97', u'id': u'monero'}
 {u'market_cap_usd': u'217248776.0', u'price_usd': u'0.00193866', u'last_updated': u'1511586843', u'name': u'Dogecoin', u'24h_volume_usd': u'9087690.0', u'percent_change_7d': u'49.14', u'symbol': u'DOGE', u'max_supply': None, u'rank': u'35', u'percent_change_1h': u'0.81', u'total_supply': u'112061308384', u'price_btc': u'0.00000023', u'available_supply': u'112061308384', u'percent_change_24h': u'1.62', u'id': u'dogecoin'}
+```
