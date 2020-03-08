@@ -1,4 +1,15 @@
 
+## NEW BUILD REQUIRED
+
+The API server is now dead. We are met with:
+
+```
+{"statusCode": 410,"error": "Gone","message": "WARNING: This API is now offline. Please switch to the new CoinMarketCap API. (https://pro.coinmarketcap.com/migrate/)"}
+```
+* Rebuild with python3
+* Convert to the new API
+
+
 ## Dockerfile install
 ```
 docker build -t coin_cap .
