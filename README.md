@@ -12,9 +12,15 @@ The API server is now dead. We are met with:
 
 ## Dockerfile install
 ```
-docker build -t coin_cap .
-docker run -it coin_cap coin_market -h
+docker build -t buildanddestroy/coin_market_cap .
+docker run --rm -it buildanddestroy/coin_market_cap /bin/bash
 ```
+
+## Pull image from Dockerhub
+```
+docker pull buildanddestroy/coin_market_cap
+```
+
 ## Install into the OS 
 
 ```
