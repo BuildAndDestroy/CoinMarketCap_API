@@ -8,20 +8,20 @@
 
 from setuptools import setup
 
-__version__ = '2.4.1-sort'
-packages = ['coinmarket']
+__version__ = '3.0.beta'
+packages = ['']
 commands = ['coin_market = coinmarket.coinmarketcap_api:main']
 
 setup(
     name                ='CoinMarketCap',
     version             =__version__,
-    description         = 'Coin exchange API client to pull exchange data.',
+    description         = 'CoinMarketCap API client to pull exchange data.',
     author              = 'Mitch O\'Donnell',
     author_email        = 'devreap1@gmail.com',
     packages            = packages,
     url                 = '',
     license             = open('LICENSE').read(),
-    install_requires    = ['prettytable'],
+    install_requires    = [''],
     entry_points        = {'console_scripts': commands},
     prefix              = '/opt/CoinMarketCap',
     long_description    = open('README.md').read()
