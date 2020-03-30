@@ -87,8 +87,9 @@ class CoinMarketCapURL(object):
 
         # This is a generator to check all possible URL's to call.
         for key, value in endpoint_dictionary.items():
-            for index in value:
-                print(f'{self.sandbox_base_url}{key}{index}')
+            if endpoint in key:
+                for index in value:
+                    print(f'{self.sandbox_base_url}{key}{index}')
 
     def get_sandbox_api_key(self) -> str:
         """If no API key is set, tell user where to get one."""
@@ -100,3 +101,43 @@ class CoinMarketCapURL(object):
         url = 'https://pro.coinmarketcap.com/'
         return f'[*] No API Key is set.\n    Get your Production API key at {url}'
 
+
+class CoinFormat(CoinMarketCapURL):
+    """docstring for ClassName"""
+    def __init__(self, your_api_key):
+        CoinMarketCapURL.__init__(self, your_api_key)
+
+
+def format_status_dictionary(json_data, status_dictionary):
+    """Input status_dictionary dictionary and print in a format.
+    
+    curl -H "X-CMC_PRO_API_KEY: API_KEY" -H "Accept: application/json" -G https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest
+    """
+    table_headers = []
+    table_content = []
+    with open(json_data, 'r') as j_file:
+            data = json.load(j_file)
+            for key, value in data.items():
+                if key == status_dictionary:
+                    for keys, values in value.items():
+                        table_headers.append(keys)
+                        table_content.append(values)
+    headers = prettytable.PrettyTable(table_headers)
+    headers.add_row(table_content)
+    print(f'[*] {status_dictionary}\n{headers}')
+
+
+def move_data_dictionaries_to_lists(json_data, data_dictionary):
+    """"""
+    data_dictionaries_now_lists = []
+
+    with open(json_data, 'r') as j_file:
+            data = json.load(j_file)
+            for key, value in data.items():
+                if key == data_dictionary:
+                    if type(value) is list:
+                        for index in value:
+                            data_dictionaries_now_lists.append(index)
+
+    for index in data_dictionaries_now_lists:
+            print(index)
