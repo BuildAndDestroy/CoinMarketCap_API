@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-"""
-    API client to pull cryptocurrency data from live exchange rates.
+"""API client to pull cryptocurrency data from live exchange rates.
 
     Copyright (C) 2020  Mitch O'Donnell devreap1@gmail.com
     This program is free software: you can redistribute it and/or modify
