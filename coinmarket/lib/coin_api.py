@@ -127,17 +127,17 @@ def format_status_dictionary(json_data, status_dictionary):
     print(f'[*] {status_dictionary}\n{headers}')
 
 
-def move_data_dictionaries_to_lists(json_data, data_dictionary):
-    """"""
-    data_dictionaries_now_lists = []
+def separate_dictionaries(json_data, name_of_wanted_dictionary):
+    """API call returns two dictionaries within a dictionary
 
+    The goal is to separate the dictionaries per call, 'status' and 'data'
+    This should work for any dictionary that returns multiple dictionaries.
+    """
+    requested_dictionary = {}
     with open(json_data, 'r') as j_file:
             data = json.load(j_file)
             for key, value in data.items():
-                if key == data_dictionary:
-                    if type(value) is list:
-                        for index in value:
-                            data_dictionaries_now_lists.append(index)
+                if key == name_of_wanted_dictionary:
+                    requested_dictionary[key] = value
+    return requested_dictionary
 
-    for index in data_dictionaries_now_lists:
-            print(index)
