@@ -13,7 +13,12 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>
 """
+import csv
+import glob
+import json
+import urllib
 
+import prettytable
 
 class CoinMarketCapURL(object):
     """URL build sessions for the api call to the Sandbox environment."""

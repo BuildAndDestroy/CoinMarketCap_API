@@ -15,14 +15,8 @@
 """
 
 import argparse
-import csv
-import glob
-import json
-import urllib
 
 import pkg_resources
-
-import prettytable
 
 
 def display_version() -> str:
