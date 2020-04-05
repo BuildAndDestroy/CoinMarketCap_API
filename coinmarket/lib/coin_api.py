@@ -20,6 +20,7 @@ import urllib
 
 import prettytable
 
+
 class CoinMarketCapURL(object):
     """URL build sessions for the api call to the Sandbox environment."""
 
@@ -28,6 +29,7 @@ class CoinMarketCapURL(object):
         self.prod_base_url = 'https://pro-api.coinmarketcap.com/v1'
         self.your_api_key = your_api_key
         self.header = self.header()
+        self.parameters = self.parameters()
 
     def api_key(self) -> str:
         """Return the api key."""
@@ -39,6 +41,15 @@ class CoinMarketCapURL(object):
                    'X-CMC_PRO_API_KEY': self.your_api_key
                    }
         return headers
+
+    def parameters(self):
+        """Convert to USD, limit to 5000 entries."""
+        parameters = {
+                        'start':'1',
+                        'limit':'5000',
+                        'convert':'USD'
+                    }
+        return parameters
 
     def endpoint_dictionary(self) -> dict:
         """Dictionary of each endpoint and the available directories."""
@@ -86,15 +97,20 @@ class CoinMarketCapURL(object):
                           }
         return endpoints_dict
 
-    def generate_url(self, endpoint) -> str:
+    def generate_urls(self, endpoint, parsed_arg_value) -> str:
         """"""
         endpoint_dictionary = self.endpoint_dictionary()
+        possible_urls = []
 
         # This is a generator to check all possible URL's to call.
-        for key, value in endpoint_dictionary.items():
-            if endpoint in key:
-                for index in value:
-                    print(f'{self.sandbox_base_url}{key}{index}')
+        for args in parsed_arg_value:
+            for key, value in endpoint_dictionary.items():
+                if endpoint in key:
+                    for index in value:
+                        if parsed_arg_value in index:
+                            possible_urls.append(f'{self.sandbox_base_url}{key}{index}')
+        print(possible_urls)
+        return possible_urls
 
     def get_sandbox_api_key(self) -> str:
         """If no API key is set, tell user where to get one."""

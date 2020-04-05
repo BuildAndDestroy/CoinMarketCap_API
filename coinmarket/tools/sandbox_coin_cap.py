@@ -16,20 +16,7 @@
 
 import argparse
 
-import pkg_resources
-
-
-def display_version() -> str:
-    """Display the version of CoinMarketCap_API installed."""
-    __version__ = pkg_resources.require('CoinMarketCap')[0].version
-    print(__version__)
-
-
-def display_license() -> str:
-    """Display the micro license and point to the full license."""
-    description = __doc__
-    legal_statement = '\ncoinmarketcap_api.py Copyright (C) 2020  Mitch O\'Donnell\n\nThis program comes with ABSOLUTELY NO WARRANTY.\nThis is free software, and you are welcome to redistribute it\nunder certain conditions.\n\nPlease read the full LICENSE file.\n'
-    print(description, legal_statement)
+from coinmarket.lib import about_this_app
 
 
 def parse_arguments() -> tuple:
@@ -38,6 +25,7 @@ def parse_arguments() -> tuple:
     epilog = f'[*] Tool used for sandbox working with the sandbox environment.\n[*] {url}'
     parser = argparse.ArgumentParser(
         epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('your_api_key', help='Add your api key for the sandbox environment.')
     parser.add_argument('-c', '--coins', action='append', type=lambda coin_and_portfolio_value: coin_and_portfolio_value.lower().split('='), nargs='*', dest='coins',
                         help='Provide coin names with/without the amount of coin in your wallet.\nExample: \n-c Bitcoin=10 eos ethereum=5\n-c bitcoin')
     parser.add_argument('-f', '--format', action='store_true',
@@ -138,8 +126,100 @@ def main() -> None:
     If arguments, return dictionaries with/without formatting.
     """
     print(f'[*] ****Coming soon!****\n')
+
     args = parse_arguments()
     print(args)
+    if args.License:
+        about_this_app.display_license()
+    if args.Version:
+        about_this_app.display_version()
+
+    # move all this into their own functions/methods
+    subparsers = []
+    if args.command == 'cryptocurrency':
+        print('We hit crypto!')
+        #api = CoinMarketCapURL(args.your_api_key, )
+        if args.map:
+            print('Map hit!')
+            subparsers.append(args.map)
+        if args.info:
+            print('Info hit!')
+            # subparsers.append()
+        if args.listings_latest:
+            print('listings_latest hit!')
+            # subparsers.append()
+        if args.listings_historical:
+            print('listings_historical hit!')
+            # subparsers.append()
+        if args.quotes_latest:
+            print('quotes_latest hit!')
+            # subparsers.append()
+        if args.quotes_historical:
+            print('quotes_historical hit!')
+            # subparsers.append()
+        if args.market_pairs_latest:
+            print('market_pairs_latest hit!')
+            # subparsers.append()
+        if args.ohlcv_latest:
+            print('ohlcv_latest hit!')
+            # subparsers.append()
+        if args.ohlcv_historical:
+            print('ohlcv_historical hit!')
+            # subparsers.append('ohlcv/historical')
+        if args.price_performance_stats_latest:
+            print('price_performance_stats_latest hit!')
+            # subparsers.append()
+
+    if args.command == 'exchange':
+        print('We hit exchange!')
+        if args.map:
+            print('We hit map')
+        if args.info:
+            print('We hit info')
+        if args.listings_latest:
+            print('We hit listings_latest')
+        if args.listings_historical:
+            print('We hit listings_historical')
+        if args.quotes_latest:
+            print('We hit quotes_latest')
+        if args.quotes_historical:
+            print('We hit quotes_historical')
+        if args.market_pairs_latest:
+            print('We hit market_pairs_latest')
+
+    if args.command == 'global-metrics':
+        print('We hit global-metrics!')
+        if args.latest:
+            print('We hit latest')
+        if args.historical:
+            print('We hit historical')
+
+    if args.command == 'tools':
+        print('We hit tools!')
+        if args.price_conversion:
+            print('We hit price_conversion')
+
+    if args.command == 'blockchain':
+        print('We hit blockchain!')
+        if args.latest:
+            print('We hit latest')
+
+    if args.command == 'fiat':
+        print('We hit fiat!')
+        if args.map:
+            print('We hit map')
+
+    if args.command == 'partners':
+        print('We hit partners!')
+        if args.listings_latest:
+            print('We hit listings_latest')
+        if args.quotes_latest:
+            print('We hit quotes_latest')
+
+    if args.command == 'key':
+        print('We hit key!')
+        if args.info:
+            print('We hit info')
 
 
 if __name__ == '__main__':
