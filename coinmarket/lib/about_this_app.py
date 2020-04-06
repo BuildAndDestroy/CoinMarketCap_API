@@ -7,7 +7,7 @@ import pkg_resources
 def display_version() -> str:
     """Display the version of CoinMarketCap_API installed."""
     __version__ = pkg_resources.require('CoinMarketCap')[0].version
-    print(f'Version: {__version__}')
+    print(f'[*] Version: {__version__}')
 
 
 def display_license() -> str:

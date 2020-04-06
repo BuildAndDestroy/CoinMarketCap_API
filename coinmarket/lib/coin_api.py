@@ -18,20 +18,16 @@ import argparse
 import csv
 import glob
 import json
-import urllib
+import requests
 
 import prettytable
-from coinmarket.lib import about_this_app
 
 
 class CoinMarketCapURL(object):
-    """URL build sessions for the api call to the environment."""
+    """Build URL's for the api call to the environment."""
 
-    def __init__(self, your_api_key, environment):
+    def __init__(self, environment):
         self.api_url = self.environment(environment)
-        self.your_api_key = your_api_key
-        self.header = self.header()
-        self.parameters = self.parameters()
 
     def environment(self, environment):
         """Run a check for sandbox or production environment being requested"""
@@ -41,25 +37,25 @@ class CoinMarketCapURL(object):
             api_url = 'https://pro-api.coinmarketcap.com/v1'
         return api_url
 
-    def api_key(self) -> str:
-        """Return the api key."""
-        return self.your_api_key
+    # def api_key(self) -> str:
+    #     """Return the api key."""
+    #     return self.your_api_key
 
-    def header(self) -> dict:
-        """Custom header that must be set."""
-        headers = {'Accepts': 'application/json',
-                   'X-CMC_PRO_API_KEY': self.your_api_key
-                   }
-        return headers
+    # def header(self) -> dict:
+    #     """Custom header that must be set."""
+    #     headers = {'Accepts': 'application/json',
+    #                'X-CMC_PRO_API_KEY': self.your_api_key
+    #                }
+    #     return headers
 
-    def parameters(self):
-        """Convert to USD, limit to 5000 entries."""
-        parameters = {
-                        'start':'1',
-                        'limit':'5000',
-                        'convert':'USD'
-                    }
-        return parameters
+    # def parameters(self):
+    #     """Convert to USD, limit to 5000 entries."""
+    #     parameters = {
+    #                     'start':'1',
+    #                     'limit':'5000',
+    #                     'convert':'USD'
+    #                 }
+    #     return parameters
 
     def endpoint_dictionary(self) -> dict:
         """Dictionary of each endpoint and the available directories."""
@@ -131,40 +127,6 @@ class CoinMarketCapURL(object):
         """If no API key is set, tell user where to get one."""
         url = 'https://pro.coinmarketcap.com/'
         return f'[*] No API Key is set.\n    Get your Production API key at {url}'
-
-
-def format_status_dictionary(json_data, status_dictionary):
-    """Input status_dictionary dictionary and print in a format.
-    
-    curl -H "X-CMC_PRO_API_KEY: API_KEY" -H "Accept: application/json" -G https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest
-    """
-    table_headers = []
-    table_content = []
-    with open(json_data, 'r') as j_file:
-            data = json.load(j_file)
-            for key, value in data.items():
-                if key == status_dictionary:
-                    for keys, values in value.items():
-                        table_headers.append(keys)
-                        table_content.append(values)
-    headers = prettytable.PrettyTable(table_headers)
-    headers.add_row(table_content)
-    print(f'[*] {status_dictionary}\n{headers}')
-
-
-def separate_dictionaries(json_data, name_of_wanted_dictionary):
-    """API call returns two dictionaries within a dictionary
-
-    The goal is to separate the dictionaries per call, 'status' and 'data'
-    This should work for any dictionary that returns multiple dictionaries.
-    """
-    requested_dictionary = {}
-    with open(json_data, 'r') as j_file:
-            data = json.load(j_file)
-            for key, value in data.items():
-                if key == name_of_wanted_dictionary:
-                    requested_dictionary[key] = value
-    return requested_dictionary
 
 
 class UserArguments(object):
@@ -400,3 +362,85 @@ class UserArguments(object):
         if self.args.command == 'key':
             all_subparsers_requested = self.user_requested_key_subparsers(self.args)
         return all_subparsers_requested
+
+
+class APICall(object):
+    """API calls to CoinMarketCap"""
+    def __init__(self, your_api_key, list_of_urls):
+        self.your_api_key = your_api_key
+        self.list_of_urls = list_of_urls
+
+    def api_key(self) -> str:
+        """Return the api key."""
+        return self.your_api_key
+
+    def header(self) -> dict:
+        """Custom header that must be set."""
+        headers = {'Accepts': 'application/json',
+                   'X-CMC_PRO_API_KEY': self.your_api_key
+                   }
+        return headers
+
+    def parameters(self) -> dict:
+        """Convert to USD, limit to 5000 entries."""
+        parameters = {
+                        'start':'1',
+                        'limit':'5000',
+                        'convert':'USD'
+                    }
+        return parameters
+
+    def api_session(self, url) -> dict:
+        """Make the API call"""
+        session = requests.Session()
+        session.headers.update(self.header())
+        try:
+            # response = session.get(url, params=self.parameters())
+            response = session.get(url)
+            data = json.loads(response.text)
+            return data
+        except (requests.ConnectionError, requests.Timeout, requests.TooManyRedirects) as e:
+            print(e)
+
+    def loop_through_urls(self) -> list:
+        """Loop through the URL's and make API calls, returning the API data in a list."""
+        returned_data = []
+        for url in self.list_of_urls:
+            returned_data.append(self.api_session(url))
+        print(returned_data)
+        return returned_data
+
+
+def format_status_dictionary(json_data, status_dictionary):
+    """Input status_dictionary dictionary and print in a format.
+    
+    curl -H "X-CMC_PRO_API_KEY: API_KEY" -H "Accept: application/json" -G https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest
+    """
+    table_headers = []
+    table_content = []
+    with open(json_data, 'r') as j_file:
+            data = json.load(j_file)
+            for key, value in data.items():
+                if key == status_dictionary:
+                    for keys, values in value.items():
+                        table_headers.append(keys)
+                        table_content.append(values)
+    headers = prettytable.PrettyTable(table_headers)
+    headers.add_row(table_content)
+    print(f'[*] {status_dictionary}\n{headers}')
+
+
+def separate_dictionaries(json_data, name_of_wanted_dictionary):
+    """API call returns two dictionaries within a dictionary
+
+    The goal is to separate the dictionaries per call, 'status' and 'data'
+    This should work for any dictionary that returns multiple dictionaries.
+    """
+    requested_dictionary = {}
+    with open(json_data, 'r') as j_file:
+            data = json.load(j_file)
+            for key, value in data.items():
+                if key == name_of_wanted_dictionary:
+                    requested_dictionary[key] = value
+    return requested_dictionary
+

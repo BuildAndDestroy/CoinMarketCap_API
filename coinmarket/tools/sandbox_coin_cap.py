@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""API client to pull cryptocurrency data from live exchange rates.
+"""API client to pull cryptocurrency data from the CoinMarketCap Sandbox.
 
     Copyright (C) 2020  Mitch O'Donnell devreap1@gmail.com
     This program is free software: you can redistribute it and/or modify
@@ -22,12 +22,8 @@ from coinmarket.lib import coin_api
 def main() -> None:
     """Pull the full list of coins in JSON format.
 
-    If no arguments present, return all dictionaries.
-    If arguments, return dictionaries with/without formatting.
+    Arguments needed, return dictionaries with/without formatting.
     """
-    print(f'[*] ****Coming soon!****\n')
-
-    # args = coin_api.parse_arguments(ENVIRONMENT)
     args = coin_api.UserArguments(ENVIRONMENT)
     if args.args.License:
         about_this_app.display_license()
@@ -36,10 +32,10 @@ def main() -> None:
 
     if args.args.command:
         subparsers = args.command_parse(args.args.command)
-        api = coin_api.CoinMarketCapURL(args.args.your_api_key, ENVIRONMENT)
+        api = coin_api.CoinMarketCapURL(ENVIRONMENT)
         all_api_urls = api.generate_urls(args.args.command, subparsers)
-        for index in all_api_urls:
-            print(index)
+        initiate_api = coin_api.APICall(args.args.your_api_key, all_api_urls)
+        initiate_api.loop_through_urls()
 
 if __name__ == '__main__':
     main()
