@@ -13,23 +13,33 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>
 """
+
+import argparse
 import csv
 import glob
 import json
 import urllib
 
 import prettytable
+from coinmarket.lib import about_this_app
 
 
 class CoinMarketCapURL(object):
-    """URL build sessions for the api call to the Sandbox environment."""
+    """URL build sessions for the api call to the environment."""
 
-    def __init__(self, your_api_key):
-        self.sandbox_base_url = 'https://sandbox-api.coinmarketcap.com/v1'
-        self.prod_base_url = 'https://pro-api.coinmarketcap.com/v1'
+    def __init__(self, your_api_key, environment):
+        self.api_url = self.environment(environment)
         self.your_api_key = your_api_key
         self.header = self.header()
         self.parameters = self.parameters()
+
+    def environment(self, environment):
+        """Run a check for sandbox or production environment being requested"""
+        if environment == 'sandbox':
+            api_url = 'https://sandbox-api.coinmarketcap.com/v1'
+        if environment == 'production':
+            api_url = 'https://pro-api.coinmarketcap.com/v1'
+        return api_url
 
     def api_key(self) -> str:
         """Return the api key."""
@@ -97,19 +107,19 @@ class CoinMarketCapURL(object):
                           }
         return endpoints_dict
 
-    def generate_urls(self, endpoint, parsed_arg_value) -> str:
+
+    def generate_urls(self, endpoint, all_subparsers_requested) -> str:
         """"""
         endpoint_dictionary = self.endpoint_dictionary()
         possible_urls = []
 
         # This is a generator to check all possible URL's to call.
-        for args in parsed_arg_value:
+        for args in all_subparsers_requested:
             for key, value in endpoint_dictionary.items():
                 if endpoint in key:
                     for index in value:
-                        if parsed_arg_value in index:
-                            possible_urls.append(f'{self.sandbox_base_url}{key}{index}')
-        print(possible_urls)
+                        if args in index:
+                            possible_urls.append(f'{self.api_url}{key}{index}')
         return possible_urls
 
     def get_sandbox_api_key(self) -> str:
@@ -121,12 +131,6 @@ class CoinMarketCapURL(object):
         """If no API key is set, tell user where to get one."""
         url = 'https://pro.coinmarketcap.com/'
         return f'[*] No API Key is set.\n    Get your Production API key at {url}'
-
-
-class CoinFormat(CoinMarketCapURL):
-    """docstring for ClassName"""
-    def __init__(self, your_api_key):
-        CoinMarketCapURL.__init__(self, your_api_key)
 
 
 def format_status_dictionary(json_data, status_dictionary):
@@ -162,3 +166,237 @@ def separate_dictionaries(json_data, name_of_wanted_dictionary):
                     requested_dictionary[key] = value
     return requested_dictionary
 
+
+class UserArguments(object):
+    """Cascade through user input"""
+    def __init__(self, environment):
+        self.environment = self.coinmarket_environment(environment)
+        self.args = self.parse_arguments()
+
+    def coinmarket_environment(self, environment):
+        """Check the environment we are using to interface."""
+        if environment == 'sandbox':
+            return 'sandbox'
+        elif environment == 'production':
+            return 'production'
+        else:
+            raise ValueError('Expected "sandbox" or "production".') 
+
+    def parse_arguments(self) -> tuple:
+        """Give options for user input."""
+        if self.environment == 'sandbox':
+            url = 'https://sandbox-api.coinmarketcap.com/'
+            epilog = f'[*] This tool is used for the coinmarketcap sandbox environment.\n[*] {url}'
+        elif self.environment == 'production':
+            url = 'https://pro-api.coinmarketcap.com'
+            epilog = f'[*] This tool is used for the coinmarketcap Production environment.\n[*] {url}'
+        parser = argparse.ArgumentParser(
+            epilog=epilog, formatter_class=argparse.RawTextHelpFormatter)
+        parser.add_argument('your_api_key', help='Add your api key for the sandbox environment.')
+        parser.add_argument('-c', '--coins', action='append', type=lambda coin_and_portfolio_value: coin_and_portfolio_value.lower().split('='), nargs='*', dest='coins',
+                            help='Provide coin names with/without the amount of coin in your wallet.\nExample: \n-c Bitcoin=10 eos ethereum=5\n-c bitcoin')
+        parser.add_argument('-f', '--format', action='store_true',
+                            help='Format dictionaries into a table.')
+        parser.add_argument('-s', '--sort', action='store_true',
+                            help='Sort coins alphebetically or highest US dollar amount.')
+        parser.add_argument('-o', '--output', action='store_true',
+                            help='Send portfolio to a file in .csv format.\nMust use with --coins.')
+        parser.add_argument('-i', '--input', action='store_true',
+                            help='Import a portfolio.csv file for formatting.')
+        parser.add_argument('-L', '--License', action='store_true',
+                            help='Print out the micro license for this software.\nSee LICENSE file for full license.')
+        parser.add_argument('-V', '--Version', action='store_true',
+                            help='Print out the current version of coin_market installed.')
+
+        subparsers = parser.add_subparsers(help='commands', dest='command')
+
+        cryptocurrency_parser = subparsers.add_parser(
+            'cryptocurrency', help='Use the cryptocurrency endpoint.')
+        cryptocurrency_parser.add_argument(
+            '--map', action='store_true', help='Use the cryptocurrency/map API call.')
+        cryptocurrency_parser.add_argument(
+            '--info', action='store_true', help='Use the cryptocurrency/info API call.')
+        cryptocurrency_parser.add_argument(
+            '--listings-latest', action='store_true', help='Use the cryptocurrency/listings/latest API call.')
+        cryptocurrency_parser.add_argument(
+            '--listings-historical', action='store_true', help='Use the cryptocurrency/listings/historical API call.')
+        cryptocurrency_parser.add_argument(
+            '--quotes-latest', action='store_true', help='Use the cryptocurrency/quotes/latest API call.')
+        cryptocurrency_parser.add_argument(
+            '--quotes-historical', action='store_true', help='Use the cryptocurrency/quotes/historical API call.')
+        cryptocurrency_parser.add_argument(
+            '--market-pairs-latest', action='store_true', help='Use the cryptocurrency/market/pairs/latest API call.')
+        cryptocurrency_parser.add_argument(
+            '--ohlcv-latest', action='store_true', help='Use the cryptocurrency/ohlcv/latest API call.')
+        cryptocurrency_parser.add_argument(
+            '--ohlcv-historical', action='store_true', help='Use the cryptocurrency/ohlcv/historical API call.')
+        cryptocurrency_parser.add_argument('--price-performance-stats-latest', action='store_true',
+                                           help='Use the cryptocurrency/price/performance/stats/latest API call.')
+
+        exchange_parser = subparsers.add_parser(
+            'exchange', help='Use the exchange endpoint.')
+        exchange_parser.add_argument(
+            '--map', action='store_true', help='Use the /v1/exchange/map API call.')
+        exchange_parser.add_argument(
+            '--info', action='store_true', help='Use the /v1/exchange/info API call.')
+        exchange_parser.add_argument('--listings-latest', action='store_true',
+                                     help='Use the /v1/exchange/listings/latest API call.')
+        exchange_parser.add_argument('--listings-historical', action='store_true',
+                                     help='Use the /v1/exchange/listings/historical API call.')
+        exchange_parser.add_argument(
+            '--quotes-latest', action='store_true', help='Use the /v1/exchange/quotes/latest API call.')
+        exchange_parser.add_argument('--quotes-historical', action='store_true',
+                                     help='Use the /v1/exchange/quotes/historical API call.')
+        exchange_parser.add_argument('--market-pairs-latest', action='store_true',
+                                     help='Use the /v1/exchange/market-pairs/latest API call.')
+
+        global_metrics_parser = subparsers.add_parser(
+            'global-metrics', help='Use the global-metrics endpoint.')
+        global_metrics_parser.add_argument(
+            '--latest', action='store_true', help='Use the /v1/global-metrics/quotes/latest API call.')
+        global_metrics_parser.add_argument(
+            '--historical', action='store_true', help='Use the /v1/global-metrics/quotes/historical API call.')
+
+        tools_parser = subparsers.add_parser(
+            'tools', help='Use the tools endpoint.')
+        tools_parser.add_argument('--price-conversion', action='store_true',
+                                  help='Use the /v1/tools/price-conversion API call.')
+
+        blockchain_parser = subparsers.add_parser(
+            'blockchain', help='Use the blockchain endpoint.')
+        blockchain_parser.add_argument(
+            '--latest', action='store_true', help='Use the /v1/blockchain/statistics/latest API call.')
+
+        fiat_parser = subparsers.add_parser('fiat', help='Use the fiat endpoint.')
+        fiat_parser.add_argument('--map', action='store_true',
+                                 help='Use the /v1/fiat/map API call.')
+
+        partners_parser = subparsers.add_parser(
+            'partners', help='Use the partners endpoint.')
+        partners_parser.add_argument('--listings-latest', action='store_true',
+                                     help='Use the /v1/partners/flipside-crypto/fcas/listings/latest API call.')
+        partners_parser.add_argument('--quotes-latest', action='store_true',
+                                     help='Use the /v1/partners/flipside-crypto/fcas/quotes/latest API call.')
+
+        key_parser = subparsers.add_parser('key', help='Use the key endpoint.')
+        key_parser.add_argument('--info', action='store_true',
+                                help='Use the /v1/key/info API call.')
+
+        args = parser.parse_args()
+        return args
+
+    def user_requested_cryptocurrency_subparsers(self, args) -> list:
+        """Subparsers for the cryptocurrency endpoint"""
+        subparsers = []
+        if args.map:
+            subparsers.append('map')
+        if args.info:
+            subparsers.append('info')
+        if args.listings_latest:
+            subparsers.append('listings/latest')
+        if args.listings_historical:
+            subparsers.append('listings/historical')
+        if args.quotes_latest:
+            subparsers.append('quotes/latest')
+        if args.quotes_historical:
+            subparsers.append('quotes/historical')
+        if args.market_pairs_latest:
+            subparsers.append('market-pairs/latest')
+        if args.ohlcv_latest:
+            subparsers.append('ohlcv/latest')
+        if args.ohlcv_historical:
+            subparsers.append('ohlcv/historical')
+        if args.price_performance_stats_latest:
+            subparsers.append('price-performance-stats/latest')
+        return subparsers
+
+    def user_requested_exchange_subparsers(self, args) -> list:
+        """Subparsers for the exchange endpoint"""
+        subparsers = []
+        if args.map:
+            subparsers.append('map')
+        if args.info:
+            subparsers.append('info')
+        if args.listings_latest:
+            subparsers.append('listings/latest')
+        if args.listings_historical:
+            subparsers.append('listings/historical')
+        if args.quotes_latest:
+            subparsers.append('quotes/latest')
+        if args.quotes_historical:
+            subparsers.append('quotes/historical')
+        if args.market_pairs_latest:
+            subparsers.append('market-pairs/latest')
+        return subparsers
+
+
+    def user_requested_global_metrics_subparsers(self, args) -> list:
+        """Subparsers for the global-metrics endpoint"""
+        subparsers = []
+        if args.latest:
+            subparsers.append('latest')
+        if args.historical:
+            subparsers.append('historical')
+        return subparsers
+
+
+    def user_requested_tools_subparsers(self, args) -> list:
+        """Subparsers for the tools endpoint"""
+        subparsers = []
+        if args.price_conversion:
+            subparsers.append('price-conversion')
+        return subparsers
+
+
+    def user_requested_blockchain_subparsers(self, args) -> list:
+        """Subparsers for the blockchain endpoint"""
+        subparsers = []
+        if args.latest:
+            subparsers.append('latest')
+        return subparsers
+
+
+    def user_requested_fiat_subparsers(self, args) -> list:
+        """Subparsers for the fiat endpoint"""
+        subparsers = []
+        if args.map:
+            subparsers.append('map')
+        return subparsers
+
+
+    def user_requested_partners_subparsers(self, args) -> list:
+        """Subparsers for the tools endpoint"""
+        subparsers = []
+        if args.listings_latest:
+            subparsers.append('listings/latest')
+        if args.quotes_latest:
+            subparsers.append('quotes/latest')
+        return subparsers
+
+
+    def user_requested_key_subparsers(self, args) -> list:
+        """Subparsers for the key endpoint"""
+        subparsers = []
+        if args.info:
+            subparsers.append('info')
+        return subparsers
+
+    def command_parse(self, command) -> list:
+        """Check the command parsed and grab subparsers"""
+        if self.args.command == 'cryptocurrency':
+            all_subparsers_requested = self.user_requested_cryptocurrency_subparsers(self.args)
+        if self.args.command == 'exchange':
+            all_subparsers_requested = self.user_requested_exchange_subparsers(self.args)
+        if self.args.command == 'global-metrics':
+            all_subparsers_requested = self.user_requested_global_metrics_subparsers(self.args)
+        if self.args.command == 'tools':
+            all_subparsers_requested = self.user_requested_tools_subparsers(self.args)
+        if self.args.command == 'blockchain':
+            all_subparsers_requested = self.user_requested_blockchain_subparsers(self.args)
+        if self.args.command == 'fiat':
+            all_subparsers_requested = self.user_requested_fiat_subparsers(self.args)
+        if self.args.command == 'partners':
+            all_subparsers_requested = self.user_requested_partners_subparsers(self.args)
+        if self.args.command == 'key':
+            all_subparsers_requested = self.user_requested_key_subparsers(self.args)
+        return all_subparsers_requested
