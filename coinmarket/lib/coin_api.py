@@ -37,26 +37,6 @@ class CoinMarketCapURL(object):
             api_url = 'https://pro-api.coinmarketcap.com/v1'
         return api_url
 
-    # def api_key(self) -> str:
-    #     """Return the api key."""
-    #     return self.your_api_key
-
-    # def header(self) -> dict:
-    #     """Custom header that must be set."""
-    #     headers = {'Accepts': 'application/json',
-    #                'X-CMC_PRO_API_KEY': self.your_api_key
-    #                }
-    #     return headers
-
-    # def parameters(self):
-    #     """Convert to USD, limit to 5000 entries."""
-    #     parameters = {
-    #                     'start':'1',
-    #                     'limit':'5000',
-    #                     'convert':'USD'
-    #                 }
-    #     return parameters
-
     def endpoint_dictionary(self) -> dict:
         """Dictionary of each endpoint and the available directories."""
         endpoints_dict = {'/cryptocurrency': [
@@ -395,8 +375,10 @@ class APICall(object):
         session = requests.Session()
         session.headers.update(self.header())
         try:
-            # response = session.get(url, params=self.parameters())
-            response = session.get(url)
+            if 'info' in url or 'latest' in url:
+                response = session.get(url, params=self.parameters())
+            else:
+                response = session.get(url)
             data = json.loads(response.text)
             return data
         except (requests.ConnectionError, requests.Timeout, requests.TooManyRedirects) as e:
@@ -407,40 +389,63 @@ class APICall(object):
         returned_data = []
         for url in self.list_of_urls:
             returned_data.append(self.api_session(url))
-        print(returned_data)
+        # print(returned_data)
         return returned_data
 
 
-def format_status_dictionary(json_data, status_dictionary):
-    """Input status_dictionary dictionary and print in a format.
-    
-    curl -H "X-CMC_PRO_API_KEY: API_KEY" -H "Accept: application/json" -G https://sandbox-api.coinmarketcap.com/v1/cryptocurrency/listings/latest
-    """
+def format_status_dictionary(api_dictionaries, status_dictionary):
+    """Input status_dictionary dictionary and print in a format."""
     table_headers = []
     table_content = []
-    with open(json_data, 'r') as j_file:
-            data = json.load(j_file)
-            for key, value in data.items():
-                if key == status_dictionary:
-                    for keys, values in value.items():
-                        table_headers.append(keys)
-                        table_content.append(values)
-    headers = prettytable.PrettyTable(table_headers)
-    headers.add_row(table_content)
-    print(f'[*] {status_dictionary}\n{headers}')
+
+    for index in api_dictionaries:
+        for key, value in index.items():
+            if key == status_dictionary:
+                if type(value) is dict:
+                    # example: {'timestamp': '2020-04-11T05:54:24.228Z', 'error_code': 0, 'error_message': None, 'elapsed': 17, 'credit_count': 1}
+                    headers = prettytable.PrettyTable(list(value.keys()))
+                    headers.add_row(list(value.values()))
+                    print(f'[*] {status_dictionary}\n{headers}\n\n')
+                if type(value) is list:
+                    table_headers = []
+                    table_content = []
+                    for index in value:
+                        for key, value in index.items():
+                            if type(value) is dict:
+                                headers = prettytable.PrettyTable(list(value.keys()))
+                                headers.add_row(list(value.values()))
+                                # Example: | 4214 |               Agrocoin               |    AGRO   |               agrocoin               |     1     | 2167 | 2019-08-17T00:04:21.000Z | 2019-08-30T18:49:22.000Z |           {'id': 1027, 'name': 'Ethereum', 'symbol': 'ETH', 'slug': 'ethereum', 'token_address': '0x1fd27f0cfc6f273b87a5e0f6fcf063422e7bcd6a'}          |
+                                # [*] platform for agrocoin
+                                # +------+----------+--------+----------+--------------------------------------------+
+                                # |  id  |   name   | symbol |   slug   |               token_address                |
+                                # +------+----------+--------+----------+--------------------------------------------+
+                                # | 1027 | Ethereum |  ETH   | ethereum | 0x1fd27f0cfc6f273b87a5e0f6fcf063422e7bcd6a |
+                                # +------+----------+--------+----------+--------------------------------------------+
+                                print(f'[*] {key} for {list(index.values())[3]}\n{headers}\n\n')
+                        # print(index)
+                        # example: {'id': 1, 'name': 'Bitcoin', 'symbol': 'BTC', 'slug': 'bitcoin', 'is_active': 1, 'rank': 1, 'first_historical_data': '2019-08-17T00:04:01.000Z', 'last_historical_data': '2019-08-30T18:49:02.000Z', 'platform': None}
+                        table_headers.append(list(index.keys()))
+                        table_content.append(list(index.values()))
+                    headers = prettytable.PrettyTable(table_headers[0])
+                    for index in table_content:
+                        headers.add_row(index)
+                    print(f'[*] {status_dictionary}\n{headers}\n\n')
+                    # print(table_content)
+                if type(value) is str:
+                    print(f'I\'m a string that needs to be built!')
+                    print(key)
+                    # for keys, values in value.items():
+                    #     print(keys)
+                            # table_headers.append(keys)
+                            # table_content.append(values)
+                            # headers = prettytable.PrettyTable(table_headers)
+                            # headers.add_row(table_content)
+                            # print(f'[*] {status_dictionary}\n{headers}')
+                            # table_headers = []
+                            # table_content = []
 
 
-def separate_dictionaries(json_data, name_of_wanted_dictionary):
-    """API call returns two dictionaries within a dictionary
-
-    The goal is to separate the dictionaries per call, 'status' and 'data'
-    This should work for any dictionary that returns multiple dictionaries.
-    """
-    requested_dictionary = {}
-    with open(json_data, 'r') as j_file:
-            data = json.load(j_file)
-            for key, value in data.items():
-                if key == name_of_wanted_dictionary:
-                    requested_dictionary[key] = value
-    return requested_dictionary
-
+def print_dictionaries(api_dictionaries):
+    """API call returned."""
+    for index in api_dictionaries:
+        print(index)

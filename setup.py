@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
     To install, run:
     sudo pip install .
@@ -8,7 +8,7 @@
 
 from setuptools import setup
 
-__version__ = '3-5-beta'
+__version__ = '4.0-beta'
 packages = ['coinmarket',
             'coinmarket.tools',
             'coinmarket.lib'

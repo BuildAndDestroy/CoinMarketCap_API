@@ -24,18 +24,26 @@ def main() -> None:
 
     Arguments needed, return dictionaries with/without formatting.
     """
-    args = coin_api.UserArguments(ENVIRONMENT)
-    if args.args.License:
+    user_input = coin_api.UserArguments(ENVIRONMENT)
+    if user_input.args.License:
         about_this_app.display_license()
-    if args.args.Version:
+    if user_input.args.Version:
         about_this_app.display_version()
 
-    if args.args.command:
-        subparsers = args.command_parse(args.args.command)
+    if user_input.args.command:
+        subparsers = user_input.command_parse(user_input.args.command)
         api = coin_api.CoinMarketCapURL(ENVIRONMENT)
-        all_api_urls = api.generate_urls(args.args.command, subparsers)
-        initiate_api = coin_api.APICall(args.args.your_api_key, all_api_urls)
-        initiate_api.loop_through_urls()
+        all_api_urls = api.generate_urls(user_input.args.command, subparsers)
+        initiate_api = coin_api.APICall(user_input.args.your_api_key, all_api_urls)
+        api_dictionaries = initiate_api.loop_through_urls()
+        #status_dictionaries = coin_api.separate_dictionaries(api_dictionaries, 'status')
+        # data_dictionaries = separate_dictionaries(api_dictionaries, 'data')
+        if user_input.args.format:
+            coin_api.format_status_dictionary(api_dictionaries, 'status')
+            coin_api.format_status_dictionary(api_dictionaries, 'data')
+            coin_api.format_status_dictionary(api_dictionaries, 'statusCode')
+        if not user_input.args.format:
+            coin_api.print_dictionaries(api_dictionaries)
 
 if __name__ == '__main__':
     main()
