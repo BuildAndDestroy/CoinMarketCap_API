@@ -394,9 +394,13 @@ class APICall(object):
 
 
 def format_status_dictionary(api_dictionaries, status_dictionary):
-    """Input status_dictionary dictionary and print in a format."""
+    """Input "status_dictionary" dictionary and dig through json layers to return lists."""
     table_headers = []
     table_content = []
+    platform_keys = []
+    platform_values = []
+    quote_keys = []
+    quote_values = []
 
     for index in api_dictionaries:
         for key, value in index.items():
@@ -407,23 +411,27 @@ def format_status_dictionary(api_dictionaries, status_dictionary):
                     headers.add_row(list(value.values()))
                     print(f'[*] {status_dictionary}\n{headers}\n\n')
                 if type(value) is list:
-                    table_headers = []
-                    table_content = []
                     for index in value:
                         for key, value in index.items():
                             if type(value) is dict:
-                                headers = prettytable.PrettyTable(list(value.keys()))
-                                headers.add_row(list(value.values()))
-                                # Example: | 4214 |               Agrocoin               |    AGRO   |               agrocoin               |     1     | 2167 | 2019-08-17T00:04:21.000Z | 2019-08-30T18:49:22.000Z |           {'id': 1027, 'name': 'Ethereum', 'symbol': 'ETH', 'slug': 'ethereum', 'token_address': '0x1fd27f0cfc6f273b87a5e0f6fcf063422e7bcd6a'}          |
-                                # [*] platform for agrocoin
-                                # +------+----------+--------+----------+--------------------------------------------+
-                                # |  id  |   name   | symbol |   slug   |               token_address                |
-                                # +------+----------+--------+----------+--------------------------------------------+
-                                # | 1027 | Ethereum |  ETH   | ethereum | 0x1fd27f0cfc6f273b87a5e0f6fcf063422e7bcd6a |
-                                # +------+----------+--------+----------+--------------------------------------------+
-                                print(f'[*] {key} for {list(index.values())[3]}\n{headers}\n\n')
-                        # print(index)
-                        # example: {'id': 1, 'name': 'Bitcoin', 'symbol': 'BTC', 'slug': 'bitcoin', 'is_active': 1, 'rank': 1, 'first_historical_data': '2019-08-17T00:04:01.000Z', 'last_historical_data': '2019-08-30T18:49:02.000Z', 'platform': None}
+                                if key == 'platform':
+                                    platform_keys.append(list(value.keys()))
+                                    platform_values.append(list(value.values()))
+                                # headers = prettytable.PrettyTable(platform_keys[0])
+                                # for index in platform_values:
+                                #     headers.add_row(index)
+                                if key == 'quote': # This will return {'USD': {'dict': 'value'}}. Need to fix this.
+                                    quote_keys.append(list(value.keys()))
+                                    quote_values.append(list(value.values()))
+                        if index['platform']: # Don't return dict to list, just removed it.
+                            del index['platform']
+                        # if index.keys() == 'quote':
+                        #     for key, value in value.items():
+                        #         headers = prettytable.PrettyTable(list(index.keys()))
+                        #         headers.add_row(list(value.values()))
+                        #         print(f'[*] {key} for {list(index.values())[3]}\n{headers}\n\n')
+                        if index['quote']: # Don't return dict to list, just removed it.
+                            del index['quote']
                         table_headers.append(list(index.keys()))
                         table_content.append(list(index.values()))
                     headers = prettytable.PrettyTable(table_headers[0])
@@ -443,6 +451,11 @@ def format_status_dictionary(api_dictionaries, status_dictionary):
                             # print(f'[*] {status_dictionary}\n{headers}')
                             # table_headers = []
                             # table_content = []
+    # platform_header = prettytable.PrettyTable(platform_keys[0])
+    # for index in platform_values:
+    #     platform_header.add_row(index)
+    # print(f'[*] Platform for:\n{platform_header}')
+
 
 
 def print_dictionaries(api_dictionaries):

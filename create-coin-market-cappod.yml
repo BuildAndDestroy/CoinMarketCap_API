@@ -6,5 +6,3 @@ spec:
    containers:
    - name: coin-market-cap-container01
      image: buildanddestroy/coin_market_cap:latest
-     ports:
-     - containerPort: 6380
