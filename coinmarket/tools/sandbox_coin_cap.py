@@ -36,14 +36,12 @@ def main() -> None:
         all_api_urls = api.generate_urls(user_input.args.command, subparsers)
         initiate_api = coin_api.APICall(user_input.args.your_api_key, all_api_urls)
         api_dictionaries = initiate_api.loop_through_urls()
-        #status_dictionaries = coin_api.separate_dictionaries(api_dictionaries, 'status')
-        # data_dictionaries = separate_dictionaries(api_dictionaries, 'data')
+
         if user_input.args.format:
-            coin_api.format_status_dictionary(api_dictionaries, 'status')
-            coin_api.format_status_dictionary(api_dictionaries, 'data')
-            coin_api.format_status_dictionary(api_dictionaries, 'statusCode')
+            json_structure = coin_api.JSONParser(api_dictionaries)
+            json_structure.print_status_table()
         if not user_input.args.format:
-            coin_api.print_dictionaries(api_dictionaries)
+            json_structure = coin_api.JSONParser(api_dictionaries)
 
 if __name__ == '__main__':
     main()

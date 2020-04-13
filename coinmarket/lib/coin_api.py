@@ -393,72 +393,85 @@ class APICall(object):
         return returned_data
 
 
-def format_status_dictionary(api_dictionaries, status_dictionary):
-    """Input "status_dictionary" dictionary and dig through json layers to return lists."""
-    table_headers = []
-    table_content = []
-    platform_keys = []
-    platform_values = []
-    quote_keys = []
-    quote_values = []
+class JSONParser(object):
+    def __init__(self, api_dictionaries):
+        self.status = 'status'
+        self.data = 'data'
+        self.statusCode = 'statusCode'
+        self.api_dictionaries = api_dictionaries
 
-    for index in api_dictionaries:
-        for key, value in index.items():
-            if key == status_dictionary:
-                if type(value) is dict:
-                    # example: {'timestamp': '2020-04-11T05:54:24.228Z', 'error_code': 0, 'error_message': None, 'elapsed': 17, 'credit_count': 1}
-                    headers = prettytable.PrettyTable(list(value.keys()))
-                    headers.add_row(list(value.values()))
-                    print(f'[*] {status_dictionary}\n{headers}\n\n')
-                if type(value) is list:
-                    for index in value:
-                        for key, value in index.items():
-                            if type(value) is dict:
-                                if key == 'platform':
-                                    platform_keys.append(list(value.keys()))
-                                    platform_values.append(list(value.values()))
-                                # headers = prettytable.PrettyTable(platform_keys[0])
-                                # for index in platform_values:
-                                #     headers.add_row(index)
-                                if key == 'quote': # This will return {'USD': {'dict': 'value'}}. Need to fix this.
-                                    quote_keys.append(list(value.keys()))
-                                    quote_values.append(list(value.values()))
-                        if index['platform']: # Don't return dict to list, just removed it.
-                            del index['platform']
-                        # if index.keys() == 'quote':
-                        #     for key, value in value.items():
-                        #         headers = prettytable.PrettyTable(list(index.keys()))
-                        #         headers.add_row(list(value.values()))
-                        #         print(f'[*] {key} for {list(index.values())[3]}\n{headers}\n\n')
-                        if index['quote']: # Don't return dict to list, just removed it.
-                            del index['quote']
-                        table_headers.append(list(index.keys()))
-                        table_content.append(list(index.values()))
-                    headers = prettytable.PrettyTable(table_headers[0])
-                    for index in table_content:
-                        headers.add_row(index)
-                    print(f'[*] {status_dictionary}\n{headers}\n\n')
-                    # print(table_content)
-                if type(value) is str:
-                    print(f'I\'m a string that needs to be built!')
-                    print(key)
-                    # for keys, values in value.items():
-                    #     print(keys)
-                            # table_headers.append(keys)
-                            # table_content.append(values)
-                            # headers = prettytable.PrettyTable(table_headers)
-                            # headers.add_row(table_content)
-                            # print(f'[*] {status_dictionary}\n{headers}')
-                            # table_headers = []
-                            # table_content = []
-    # platform_header = prettytable.PrettyTable(platform_keys[0])
-    # for index in platform_values:
-    #     platform_header.add_row(index)
-    # print(f'[*] Platform for:\n{platform_header}')
+    def print_status_table(self):
+        """Status dictionary is short. Just print it."""
+        for index in self.api_dictionaries:
+            for key, value in index.items():
+                if key == self.status:
+                    if type(value) is dict:
+                        # example: {'timestamp': '2020-04-11T05:54:24.228Z', 'error_code': 0, 'error_message': None, 'elapsed': 17, 'credit_count': 1}
+                        headers = prettytable.PrettyTable(list(value.keys()))
+                        headers.add_row(list(value.values()))
+                        print(f'[*] {self.status}\n{headers}\n\n')
+
+    def dictionary_parser(self, api_dictionaries, status_dictionary):
+        """Input "status_dictionary" dictionary and dig through json layers to return lists."""
+        table_headers = []
+        table_content = []
+        platform_keys = []
+        platform_values = []
+        quote_keys = []
+        quote_values = []
+
+        for index in api_dictionaries:
+            for key, value in index.items():
+                if key == status_dictionary:
+                    if type(value) is dict:
+                        # example: {'timestamp': '2020-04-11T05:54:24.228Z', 'error_code': 0, 'error_message': None, 'elapsed': 17, 'credit_count': 1}
+                        headers = prettytable.PrettyTable(list(value.keys()))
+                        headers.add_row(list(value.values()))
+                        print(f'[*] {status_dictionary}\n{headers}\n\n')
+                    if type(value) is list:
+                        for index in value:
+                            for key, value in index.items():
+                                if type(value) is dict:
+                                    if key == 'platform':
+                                        platform_keys.append(list(value.keys()))
+                                        platform_values.append(list(value.values()))
+                                    # headers = prettytable.PrettyTable(platform_keys[0])
+                                    # for index in platform_values:
+                                    #     headers.add_row(index)
+                                    if key == 'quote': # This will return {'USD': {'dict': 'value'}}. Need to fix this.
+                                        quote_keys.append(list(value.keys()))
+                                        quote_values.append(list(value.values()))
+                            if index['platform']: # Don't return dict to list, just removed it.
+                                del index['platform']
+                            # if index.keys() == 'quote':
+                            #     for key, value in value.items():
+                            #         headers = prettytable.PrettyTable(list(index.keys()))
+                            #         headers.add_row(list(value.values()))
+                            #         print(f'[*] {key} for {list(index.values())[3]}\n{headers}\n\n')
+                            if index['quote']: # Don't return dict to list, just removed it.
+                                del index['quote']
+                            table_headers.append(list(index.keys()))
+                            table_content.append(list(index.values()))
+                        # headers = prettytable.PrettyTable(table_headers[0])
+                        # for index in table_content:
+                        #     headers.add_row(index)
+                        # print(f'[*] {status_dictionary}\n{headers}\n\n')
+                        # print(table_content)
+                    if type(value) is str:
+                        print(f'I\'m a string that needs to be built!')
+                        print(key)
+                        # for keys, values in value.items():
+                        #     print(keys)
+                                # table_headers.append(keys)
+                                # table_content.append(values)
+                                # headers = prettytable.PrettyTable(table_headers)
+                                # headers.add_row(table_content)
+                                # print(f'[*] {status_dictionary}\n{headers}')
+                                # table_headers = []
+                                # table_content = []
 
 
-
-def print_dictionaries(api_dictionaries):
-    """API call returned."""
-    for index in api_dictionaries:
-        print(index)
+    def print_dictionaries(self):
+        """API call returned as is."""
+        for index in self.api_dictionaries:
+            print(index)
