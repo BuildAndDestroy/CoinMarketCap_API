@@ -453,14 +453,12 @@ class JSONParser(object):
         headers = prettytable.PrettyTable(keys_header)
         for index in values_list:
             headers.add_row(index)
-        print(f'[*] Quote in {values_list[0][3]}\n{headers}\n\n')
+        print(f'[*] Quote in {values_list[0]}\n{headers}\n\n')
 
     def pretty_data_table(self, data_keys, data_values):
         """Our primary data table printed."""
         keys_header = data_keys[0]
         values_list = data_values
-        print(keys_header)
-        print(values_list[0])
         headers = prettytable.PrettyTable(keys_header)
         for index in values_list:
             headers.add_row(index)
@@ -486,7 +484,7 @@ class JSONParser(object):
                 if key == self.data:
                     if type(value) is dict:
                         # example: {'timestamp': '2020-04-11T05:54:24.228Z', 'error_code': 0, 'error_message': None, 'elapsed': 17, 'credit_count': 1}
-                        print(f'[*] Reason to migrate to another method')
+                        print(f'[*] Reason to migrate to another method') #  cryptocurrency --info fails here
                         headers = prettytable.PrettyTable(list(value.keys()))
                         headers.add_row(list(value.values()))
                         print(f'[*] {self.data}\n{headers}\n\n')
@@ -500,10 +498,11 @@ class JSONParser(object):
                                         for platform_key, platform_value in value.items():
                                             if platform_key == 'token_address':
                                                 index[key] = platform_value
-                                    if key == 'quote': # This will return {'USD': {'dict': 'value'}}. Need to fix this.
-                                        for key, value in key.items():
-                                            quote_keys.append(list(value.keys()))
-                                            quote_values.append(list(value.values()))
+                                    if key == 'quote': # merge this to the data table. No clue what the price belongs to without doing this.
+                                        for quote_key, quote_value in value.items():
+                                            # print(quote_value)
+                                            quote_keys.append(list(quote_value.keys()))
+                                            quote_values.append(list(quote_value.values()))
                             # if index['platform']: # Don't return dict to list, just remove it.
                             #     del index['platform']
                             # if index['quote']: # Don't return dict to list, just remove it.
@@ -512,7 +511,6 @@ class JSONParser(object):
                             data_values.append(list(index.values()))
                     if type(value) is str:
                         for keys, values in value.items():
-                            # print(keys) Culprit
                             data_string_keys.append(keys)
                             data_string_values.append(values)
     
