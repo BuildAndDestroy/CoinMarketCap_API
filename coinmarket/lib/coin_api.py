@@ -360,7 +360,15 @@ class APICall(object):
                    }
         return headers
 
-    def parameters(self) -> dict:
+    def info_parameters(self):
+        """string_of_slugs here can be parsed to call certain currency."""
+        string_of_slugs = 'bitcoin,ethereum,monero'
+        parameters = {
+                        'slug':string_of_slugs
+                    }
+        return parameters
+
+    def latest_parameters(self) -> dict:
         """Convert to USD, limit to 5000 entries."""
         parameters = {
                         'start':'1',
@@ -374,8 +382,10 @@ class APICall(object):
         session = requests.Session()
         session.headers.update(self.header())
         try:
-            if 'info' in url or 'latest' in url:
-                response = session.get(url, params=self.parameters())
+            if 'latest' in url:
+                response = session.get(url, params=self.latest_parameters())
+            elif 'info' in url:
+                response = session.get(url, params=self.info_parameters())
             else:
                 response = session.get(url)
             data = json.loads(response.text)
@@ -387,20 +397,20 @@ class APICall(object):
         """Loop through the URL's and make API calls, returning the API data in a list."""
         returned_data = []
         for url in self.list_of_urls:
+            print(url)
             returned_data.append(self.api_session(url))
-        # print(returned_data)
         return returned_data
 
 
 class JSONParser(object):
     def __init__(self, api_dictionaries):
-        self.status = 'status'
         self.data = 'data'
-        self.statusCode = 'statusCode'
+        self.status = 'status'
+        self.statuscode = 'statusCode'
         self.api_dictionaries = api_dictionaries
 
-    def print_status_table(self) -> None:
-        """Status dictionary is short. Just print it."""
+    def pretty_status_table(self) -> None:
+        """self.status dictionary is short. Just print it."""
         for index in self.api_dictionaries:
             for key, value in index.items():
                 if key == self.status:
@@ -410,33 +420,76 @@ class JSONParser(object):
                         headers.add_row(list(value.values()))
                         print(f'[*] {self.status}\n{headers}\n\n')
 
+    def pretty_statuscode_table(self) -> None:
+        """self.statuscode dictionary is short. Just print it.
+        https://sandbox-api.coinmarketcap.com/v1/key/v1/key/info
+        [*] statusCode
+        +------------+-----------+-----------+
+        | statusCode |   error   |  message  |
+        +------------+-----------+-----------+
+        |    404     | Not Found | Not Found |
+        +------------+-----------+-----------+
+        """
+        for index in self.api_dictionaries:
+            for key, value in index.items():
+                if key == self.statuscode:
+                    headers = prettytable.PrettyTable(list(index.keys()))
+                    headers.add_row(list(index.values()))
+                    print(f'[*] {self.statuscode}\n{headers}\n\n')
 
-    def platform_list(self, keys_list, values_list) -> list:
-        """"""
-        return [keys_list, values_list]
-        
+    def pretty_platform_list(self, keys_list, values_list) -> None:
+        """If platform is found, print it."""
+        keys_header = keys_list[0]
+        values_list = values_list
+        headers = prettytable.PrettyTable(keys_header)
+        for index in values_list:
+            headers.add_row(index)
+        print(f'[*] Platforms for Cryptocurrency - Check the token_address and ID.\n{headers}\n\n')
 
-    def quote_list(self, keys_list, values_list) -> list:
-        """"""
-        return [keys_list, values_list]
+    def pretty_quote_list(self, keys_list, values_list) -> None:
+        """If quote is found, print it."""
+        keys_header = keys_list[0]
+        values_list = values_list
+        headers = prettytable.PrettyTable(keys_header)
+        for index in values_list:
+            headers.add_row(index)
+        print(f'[*] Quote in {values_list[0][3]}\n{headers}\n\n')
 
-    def dictionary_parser(self, api_dictionaries, status_dictionary):
+    def pretty_data_table(self, data_keys, data_values):
+        """Our primary data table printed."""
+        keys_header = data_keys[0]
+        values_list = data_values
+        print(keys_header)
+        print(values_list[0])
+        headers = prettytable.PrettyTable(keys_header)
+        for index in values_list:
+            headers.add_row(index)
+        print(f'[*] Data Table:\n{headers}\n\n')
+
+    def dictionary_parser(self):
         """Dig through json layers to return lists."""
-        table_headers = []
-        table_content = []
+        data_keys = []
+        data_values = []
+        data_string_keys = []
+        data_string_values = []
         platform_keys = []
         platform_values = []
         quote_keys = []
         quote_values = []
 
-        for index in api_dictionaries:
+        for index in self.api_dictionaries:
             for key, value in index.items():
-                if key == status_dictionary:
+                if key == self.status:
+                    self.pretty_status_table()
+                if key == self.statuscode:
+                    self.pretty_statuscode_table()
+                if key == self.data:
                     if type(value) is dict:
                         # example: {'timestamp': '2020-04-11T05:54:24.228Z', 'error_code': 0, 'error_message': None, 'elapsed': 17, 'credit_count': 1}
+                        print(f'[*] Reason to migrate to another method')
                         headers = prettytable.PrettyTable(list(value.keys()))
                         headers.add_row(list(value.values()))
-                        print(f'[*] {status_dictionary}\n{headers}\n\n')
+                        print(f'[*] {self.data}\n{headers}\n\n')
                     if type(value) is list:
                         for index in value:
                             for key, value in index.items():
@@ -444,36 +497,39 @@ class JSONParser(object):
                                     if key == 'platform':
                                         platform_keys.append(list(value.keys()))
                                         platform_values.append(list(value.values()))
+                                        for platform_key, platform_value in value.items():
+                                            if platform_key == 'token_address':
+                                                index[key] = platform_value
                                     if key == 'quote': # This will return {'USD': {'dict': 'value'}}. Need to fix this.
-                                        quote_keys.append(list(value.keys()))
-                                        quote_values.append(list(value.values()))
+                                        for key, value in key.items():
+                                            quote_keys.append(list(value.keys()))
+                                            quote_values.append(list(value.values()))
                             # if index['platform']: # Don't return dict to list, just remove it.
                             #     del index['platform']
-                            # if index['quote']: # Don't return dict to list, just removed it.
+                            # if index['quote']: # Don't return dict to list, just remove it.
                             #     del index['quote']
-                            table_headers.append(list(index.keys()))
-                            table_content.append(list(index.values()))
+                            data_keys.append(list(index.keys()))
+                            data_values.append(list(index.values()))
                     if type(value) is str:
-                        print(f'I\'m a string that needs to be built!')
-                        print(key)
-                        # for keys, values in value.items():
-                        #     print(keys)
-                                # table_headers.append(keys)
-                                # table_content.append(values)
-                                # headers = prettytable.PrettyTable(table_headers)
-                                # headers.add_row(table_content)
-                                # print(f'[*] {status_dictionary}\n{headers}')
-                                # table_headers = []
-                                # table_content = []
-    if platform_keys and platform_values:
-        self.platform_list(platform_keys, platform_values)
+                        for keys, values in value.items():
+                            # print(keys) Culprit
+                            data_string_keys.append(keys)
+                            data_string_values.append(values)
     
-    if quote_keys and quote_values:
-        self.quote_list(quote_keys, quote_values)
+        if platform_keys and platform_values:
+            self.pretty_platform_list(platform_keys, platform_values)
+    
+        if quote_keys and quote_values:
+            self.pretty_quote_list(quote_keys, quote_values)
 
+        if data_keys and data_values:
+            self.pretty_data_table(data_keys, data_values)
 
+        if data_string_keys or data_string_values:
+            print(f'data_string_keys and data_string_values found!')
 
     def print_dictionaries(self):
         """API call returned as is."""
+        # print(self.api_dictionaries)
         for index in self.api_dictionaries:
             print(index)

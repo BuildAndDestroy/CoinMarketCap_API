@@ -29,7 +29,6 @@ def main() -> None:
         about_this_app.display_license()
     if user_input.args.Version:
         about_this_app.display_version()
-
     if user_input.args.command:
         subparsers = user_input.command_parse(user_input.args.command)
         api = coin_api.CoinMarketCapURL(ENVIRONMENT)
@@ -39,7 +38,7 @@ def main() -> None:
 
         if user_input.args.format:
             json_structure = coin_api.JSONParser(api_dictionaries)
-            json_structure.print_status_table()
+            json_structure.dictionary_parser()
         if not user_input.args.format:
             json_structure = coin_api.JSONParser(api_dictionaries)
             json_structure.print_dictionaries()
