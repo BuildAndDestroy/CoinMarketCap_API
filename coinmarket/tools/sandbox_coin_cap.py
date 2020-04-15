@@ -42,6 +42,7 @@ def main() -> None:
             json_structure.print_status_table()
         if not user_input.args.format:
             json_structure = coin_api.JSONParser(api_dictionaries)
+            json_structure.print_dictionaries()
 
 if __name__ == '__main__':
     main()
