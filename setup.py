@@ -8,7 +8,7 @@
 
 from setuptools import setup
 
-__version__ = '4.0-beta'
+__version__ = '4.5-beta'
 packages = ['coinmarket',
             'coinmarket.tools',
             'coinmarket.lib'

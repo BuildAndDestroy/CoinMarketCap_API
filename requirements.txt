@@ -1,1 +1,8 @@
-
+certifi==2020.4.5.1
+chardet==3.0.4
+CoinMarketCap==4.5b0
+idna==2.9
+pkg-resources==0.0.0
+prettytable==0.7.2
+requests==2.23.0
+urllib3==1.25.8
