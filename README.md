@@ -30,4 +30,3 @@ virtualenv -p python3 coin_cap
 source coin_cap/bin/activate
 pip install /path/to/CoinMarketCap_API/.
 ```
-
